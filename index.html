@@ -25,7 +25,7 @@
   .avatar img{width:100%;height:100%;object-fit:cover}
   .top .name{font-weight:700;font-size:16px}
   .top .sub{color:var(--muted);font-size:12px;margin-top:2px}
-  .top .ball{margin-left:auto;font-size:26px}
+  .logo{flex:none;display:block;filter:drop-shadow(0 3px 8px rgba(37,99,235,.45))}
   .league{font-size:20px;font-weight:800;letter-spacing:.2px}
   .cal-h button:disabled{opacity:.3;cursor:default}
 
@@ -100,7 +100,7 @@
 
   /* kalendar */
   .cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-  .cal-h b{font-size:16px;text-transform:capitalize}
+  .cal-h b{font-size:16px}
   .cal-h button{background:var(--card2);border:1px solid var(--line);width:36px;height:36px;border-radius:10px;font-size:16px}
   .cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
   .cal-w{font-size:11px;color:var(--muted);padding:4px 0}
@@ -156,9 +156,15 @@ const ME = {
   username: tu && tu.username ? '@' + tu.username : '',
   photo: tu && tu.photo_url ? tu.photo_url : ''
 };
-/* Admin Telegram ID lari shu yerga yoziladi. Brauzerda (Telegramsiz) sinaganda admin ko'rinadi. */
+/* Rollar. Telegram ID lar shu yerga yoziladi (o'z ID ingni Profil sahifasidan ko'rasan).
+   OWNER_IDS = asoschi (keyin adminlarni ham shu qo'shadi), ADMIN_IDS = adminlar (do'sting).
+   Oddiy futbolchilar bu ro'yxatlarda bo'lmaydi, shuning uchun Admin tabini ko'rmaydi.
+   DIQQAT: bu faqat ko'rinish. Haqiqiy himoya server ulanganda qo'shiladi. */
+const OWNER_IDS = [];
 const ADMIN_IDS = [];
-const IS_ADMIN = !tu || ADMIN_IDS.includes(ME.id);
+const DEV = ['localhost', '127.0.0.1'].includes(location.hostname);   // faqat o'z kompyuteringda sinash uchun
+const IS_OWNER = !!tu && OWNER_IDS.includes(ME.id);
+const IS_ADMIN = IS_OWNER || (!!tu && ADMIN_IDS.includes(ME.id)) || (DEV && !tu);
 
 /* ---------- O'yin qoidalari ---------- */
 const TEAM_SIZE = 7;      // bitta jamoada 7 o'yinchi
@@ -233,8 +239,20 @@ const $nav = document.getElementById('nav');
 function avatarHtml() { return `<div class="avatar">${ME.photo ? `<img src="${esc(ME.photo)}">` : (ME.name ? esc(ME.name.charAt(0).toUpperCase()) : '👤')}</div>`; }
 // Tepada: liga nomi + kirgan foydalanuvchining nickname'i (@username, bo'lmasa ismi)
 const NICK = tu ? (tu.username ? '@' + tu.username : ME.name) : '';
+/* Liga logotipi: qalqon + futbol to'pi + chaqmoq (Power) */
+const LOGO = `<svg class="logo" viewBox="0 0 64 64" width="48" height="48" role="img" aria-label="Riga Street Power Liga">
+  <defs>
+    <linearGradient id="rspA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6aa5ff"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient>
+    <linearGradient id="rspB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+  </defs>
+  <path d="M32 3 L58 12 V32 C58 47 47 58 32 62 C17 58 6 47 6 32 V12 Z" fill="url(#rspA)" stroke="#b6d0ff" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="29" cy="39" r="15" fill="#f4f7ff" stroke="#0f2a4d" stroke-width="1.6"/>
+  <path d="M29 33.2 L34.5 37.2 L32.4 43.6 H25.6 L23.5 37.2 Z" fill="#0f2a4d"/>
+  <path d="M29 33.2 V26 M34.5 37.2 L41 34.6 M32.4 43.6 L36.4 49 M25.6 43.6 L21.6 49 M23.5 37.2 L17 34.6" stroke="#0f2a4d" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M44 7 L31 27 H39 L35 42 L52 20 H42.5 Z" fill="url(#rspB)" stroke="#0f2a4d" stroke-width="2" stroke-linejoin="round"/>
+</svg>`;
 function topHtml() {
-  return `<div class="top"><div class="grow"><div class="league">Riga Street Power Liga</div>${NICK ? `<div class="sub">${esc(NICK)}</div>` : ''}</div><div class="ball">⚽</div></div>`;
+  return `<div class="top">${LOGO}<div class="grow"><div class="league">Riga Street Power Liga</div>${NICK ? `<div class="sub">${esc(NICK)}</div>` : ''}</div></div>`;
 }
 function progress(g) {
   const c = calc(g);
@@ -410,20 +428,25 @@ function viewMine() {
 
 function viewProfile() {
   const total = state.games.filter(isReg).length;
+  const role = IS_OWNER ? '<span class="tag ok">Asoschi</span>' : (IS_ADMIN && !DEV ? '<span class="tag ok">Admin</span>' : '');
   return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(ME.name || 'Foydalanuvchi')}</div>
-    <div class="g-sub">${esc(ME.username) || 'username yo\'q'}</div></div></div></div>
+    <div class="g-sub">${esc(ME.username) || 'username yo\'q'}</div>
+    ${tu ? `<div class="g-sub">Telegram ID: <b>${ME.id}</b></div>` : ''}</div>${role}</div></div>
     <div class="stats"><div class="stat"><b>${total}</b><small>Yozilgan o'yinlar</small></div>
     <div class="stat"><b>${upcoming().filter(isReg).length}</b><small>Kutilayotgan</small></div></div>`;
 }
 
 function viewAdmin() {
+  if (!IS_ADMIN) return viewGames();
   return topHtml() + `<div class="card"><div class="g-title">🛠 Admin panel</div>
-    <div class="g-sub" style="margin-top:8px">Bu yerda admin o'yin qo'shadi, o'chiradi va sozlamalarni o'zgartiradi. Tez orada qo'shiladi.</div></div>
-    <button class="btn ghost" data-a="reset">Namuna ma'lumotlarni tiklash</button>`;
+    <div class="g-sub" style="margin-top:8px">${IS_OWNER ? 'Siz asoschisiz: adminlarni ham siz qo\'shasiz.' : 'Siz adminsiz.'}</div></div>
+    <div class="card"><div class="g-sub">O'yin qo'shish va o'chirish, o'yinchilarni ko'rish, yakkalarni jamoalarga taqsimlash tez orada qo'shiladi.</div></div>
+    ${DEV ? '<button class="btn ghost" data-a="reset">Namuna ma\'lumotlarni tiklash</button>' : ''}`;
 }
 
 function render() {
   let html;
+  if (state.tab === 'admin' && !IS_ADMIN) state.tab = 'games';
   if (state.form) html = viewForm();
   else if (state.tab === 'games') html = state.open ? viewDetail() : viewGames();
   else if (state.tab === 'mine') html = state.open ? viewDetail() : viewMine();
