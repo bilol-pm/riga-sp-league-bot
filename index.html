@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Futbol</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:#0a1020; --card:#111a2e; --card2:#16213a; --line:#1f2d4a;
+    --text:#eaf0ff; --muted:#8a99b8; --blue:#3b82f6; --blue2:#2563eb;
+    --green:#22c55e; --amber:#f59e0b; --red:#ef4444;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  body{min-height:100vh;display:flex;justify-content:center;align-items:flex-start;
+    background:radial-gradient(900px 500px at 50% -10%,#16264a 0%,var(--bg) 60%)}
+  #app{width:100%;max-width:480px;min-height:100vh;min-height:100dvh;padding:14px 14px 100px}
+  button{font:inherit;color:inherit;border:0;cursor:pointer}
+
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#22c55e);
+    display:grid;place-items:center;font-weight:700;font-size:18px;overflow:hidden;flex:none}
+  .avatar img{width:100%;height:100%;object-fit:cover}
+  .top .name{font-weight:700;font-size:16px}
+  .top .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .top .ball{margin-left:auto;font-size:26px}
+  .league{font-size:20px;font-weight:800;letter-spacing:.2px}
+  .cal-h button:disabled{opacity:.3;cursor:default}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+  .hero{background:linear-gradient(135deg,#14305f 0%,#0f2a4d 45%,#0f3b2e 100%);border-color:#24457a}
+  .label{font-size:12px;color:#9fb6e6;letter-spacing:.4px;text-transform:uppercase;font-weight:600}
+  .title{font-size:20px;font-weight:800;margin:6px 0 4px}
+  .meta{display:flex;flex-direction:column;gap:6px;margin:10px 0;color:#cfdcff;font-size:14px}
+  .count{display:flex;gap:8px;margin:12px 0}
+  .count div{flex:1;background:rgba(0,0,0,.28);border-radius:12px;padding:8px 0;text-align:center}
+  .count b{display:block;font-size:20px}
+  .count small{font-size:10px;color:#9fb6e6}
+
+  .bar{position:relative;height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin:10px 0 6px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:99px;transition:width .3s}
+  .bar .mk{position:absolute;top:0;bottom:0;width:2px;background:#ffffffaa}
+  .barrow{display:flex;justify-content:space-between;font-size:12px;color:#b9c8ee}
+  .minrow{font-size:12px;margin-top:6px;color:#b9c8ee}
+  .minrow.ok{color:#4ade80}
+
+  .btn{width:100%;padding:14px;border-radius:14px;font-weight:700;font-size:16px;
+    background:linear-gradient(180deg,#4d8dff,var(--blue2));box-shadow:0 4px 0 #1b47a8;margin-top:8px}
+  .btn:active{transform:translateY(2px);box-shadow:0 2px 0 #1b47a8}
+  .btn.out{background:transparent;border:1px solid #ef444477;color:#ff8a8a;box-shadow:none}
+  .btn.ghost{background:var(--card2);box-shadow:none;border:1px solid var(--line)}
+  .btn.sm{width:auto;padding:10px 14px;font-size:13px;margin:0;border-radius:10px;box-shadow:none}
+
+  h3{margin:18px 2px 10px;font-size:17px}
+  .row{display:flex;align-items:center;gap:12px}
+  .grow{flex:1;min-width:0}
+  .g-title{font-weight:700}
+  .g-sub{color:var(--muted);font-size:13px;margin-top:3px;word-break:break-word}
+  .datebox{width:52px;flex:none;text-align:center;background:var(--card2);border-radius:12px;padding:6px 0;border:1px solid var(--line)}
+  .datebox b{display:block;font-size:20px;line-height:1.1}
+  .datebox small{font-size:11px;color:var(--muted);text-transform:uppercase}
+  .tag{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700;display:inline-block;white-space:nowrap}
+  .tag.ok{background:#22c55e22;color:#4ade80}
+  .tag.wait{background:#f59e0b22;color:#fbbf24}
+  .tag.full{background:#ef444422;color:#f87171}
+  .link{cursor:pointer}
+
+  .back{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin-bottom:12px;font-size:14px}
+  .player{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .player:last-child{border-bottom:0}
+  .num{width:26px;text-align:center;color:var(--muted);font-weight:700;font-size:13px;padding-top:8px}
+  .pav{width:34px;height:34px;border-radius:50%;background:var(--card2);display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+  .me{color:var(--blue)}
+  .empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:14px}
+  .empty .big{font-size:40px;margin-bottom:8px}
+
+  .stats{display:flex;gap:10px}
+  .stat{flex:1;text-align:center;background:var(--card2);border-radius:14px;padding:14px 6px}
+  .stat b{font-size:24px;display:block}
+  .stat small{color:var(--muted);font-size:12px}
+
+  /* forma */
+  input[type=text],input[type=tel],input[type=email]{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit;font-size:16px;outline:none}
+  input:focus{border-color:var(--blue)}
+  .field-l{font-size:12px;color:var(--muted);margin:14px 0 6px}
+  .note{font-size:13px;color:#fbbf24;background:#f59e0b14;border:1px solid #f59e0b44;border-radius:10px;padding:8px 10px;margin-top:12px}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .opt{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
+  .opt .ic{font-size:26px;display:block;margin-bottom:6px}
+  .opt b{display:block;font-size:14px}
+  .opt small{color:var(--muted);font-size:12px}
+  .opt.on{border-color:var(--blue);background:#1d3a74}
+  .mrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .mrow input{flex:1;min-width:0}
+  .capbtn{flex:none;width:48px;height:48px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-size:18px;opacity:.45}
+  .capbtn.on{opacity:1;background:#3d3210;border-color:#f59e0b99}
+  .hint{font-size:12px;color:var(--muted);margin:2px 0 10px}
+
+  /* kalendar */
+  .cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .cal-h b{font-size:16px;text-transform:capitalize}
+  .cal-h button{background:var(--card2);border:1px solid var(--line);width:36px;height:36px;border-radius:10px;font-size:16px}
+  .cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+  .cal-w{font-size:11px;color:var(--muted);padding:4px 0}
+  .cal-d{aspect-ratio:1;display:grid;place-items:center;font-size:14px;border-radius:10px;border:1px solid transparent}
+  .cal-d.today{border-color:var(--blue)}
+  .cal-d.game{background:#1d3a74;color:#cfe0ff;font-weight:700;cursor:pointer}
+  .cal-d.reg{background:#14532d;color:#86efac}
+  .cal-d.blank{visibility:hidden}
+  .legend{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+  nav{position:fixed;left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom));
+    width:calc(100% - 24px);max-width:456px;background:#0e1730ee;backdrop-filter:blur(10px);
+    border:1px solid var(--line);border-radius:22px;display:flex;padding:6px;gap:4px;z-index:5}
+  nav button{flex:1;background:transparent;padding:8px 0;border-radius:16px;color:var(--muted);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;min-width:0}
+  nav button span{font-size:20px;line-height:1}
+  nav button.on{background:#1b2c52;color:#7db0ff}
+
+  .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#16233f;border:1px solid var(--line);
+    padding:10px 16px;border-radius:12px;font-size:14px;z-index:20;animation:fade .2s;max-width:90%;text-align:center}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+
+  /* kichik telefonlar */
+  @media (max-width:360px){
+    #app{padding:12px 10px 96px}
+    .title{font-size:18px}
+    .league{font-size:18px}
+    .count b{font-size:17px}
+    .btn{font-size:15px;padding:13px}
+    nav button{font-size:10px}
+    nav button span{font-size:18px}
+    .datebox{width:46px}
+    .cal-d{font-size:13px}
+    .opt{padding:12px 6px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav id="nav"></nav>
+
+<script>
+/* ---------- Telegram ---------- */
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) {
+  tg.ready(); tg.expand();
+  try { tg.setHeaderColor('#0a1020'); tg.setBackgroundColor('#0a1020'); } catch (e) {}
+}
+const tu = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+const ME = {
+  id: tu ? tu.id : 1,
+  name: tu ? [tu.first_name, tu.last_name].filter(Boolean).join(' ') : '',
+  username: tu && tu.username ? '@' + tu.username : '',
+  photo: tu && tu.photo_url ? tu.photo_url : ''
+};
+/* Admin Telegram ID lari shu yerga yoziladi. Brauzerda (Telegramsiz) sinaganda admin ko'rinadi. */
+const ADMIN_IDS = [];
+const IS_ADMIN = !tu || ADMIN_IDS.includes(ME.id);
+
+/* ---------- O'yin qoidalari ---------- */
+const TEAM_SIZE = 7;      // bitta jamoada 7 o'yinchi
+const MIN_TEAMS = 3;      // kamida 3 jamoa
+const MAX_TEAMS = 4;      // ko'pi bilan 4 jamoa
+const LIMIT = TEAM_SIZE * MAX_TEAMS;   // 28 o'yinchi
+const MIN_PLAYERS = TEAM_SIZE * MIN_TEAMS; // 21 o'yinchi
+const MAX_WEEKS = 8;      // kalendarda necha hafta oldinga o'tish mumkin
+
+/* ---------- Helpers ---------- */
+const DAYS = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+const MONTHS = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'];
+const WD = ['Du','Se','Ch','Pa','Ju','Sh','Ya'];
+const pad = n => String(n).padStart(2, '0');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = ts => { const d = new Date(ts); return `${DAYS[d.getDay()]}, ${d.getDate()}-${MONTHS[d.getMonth()]}`; };
+const fmtTime = ts => { const d = new Date(ts); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const at = (days, h, m) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, m, 0, 0); return d.getTime(); };
+const mondayOf = ts => { const d = new Date(ts); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; };
+const haptic = () => { try { tg.HapticFeedback.impactOccurred('light'); } catch (e) {} };
+const okPhone = s => /^\+?[0-9 ()-]{7,}$/.test(s.trim());
+const okEmail = s => /^\S+@\S+\.\S+$/.test(s.trim());
+
+/* ---------- Namuna ma'lumotlar (keyin admin paneldan boshqariladi) ---------- */
+function seed() {
+  const solo = (n, i) => ({ uid: 1001 + i, type: 'solo', name: n, phone: '', email: '', ts: Date.now() - i * 1000 });
+  const team = { uid: 2001, type: 'team', teamName: 'Burgutlar', captain: 2, phone: '',
+    members: ['Aziz', 'Jasur', 'Sardor', 'Timur', 'Bobur', 'Dilshod', 'Otabek'], ts: Date.now() - 9000 };
+  const place = 'Stadion (joy keyin yoziladi)';
+  // Har hafta shanba va yakshanba kunlari o'yin (hozircha namuna: shu haftadan 9 hafta oldinga)
+  const games = [];
+  const mon = mondayOf(Date.now());
+  for (let w = 0; w < 9; w++) for (const off of [5, 6]) {
+    const d = new Date(mon); d.setDate(d.getDate() + w * 7 + off); d.setHours(20, 0, 0, 0);
+    games.push({ id: Number('' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate())), title: 'Futbol o\'yini', ts: d.getTime(), place, limit: LIMIT, min: MIN_PLAYERS, players: [] });
+  }
+  const fut = games.filter(g => g.ts > Date.now());
+  if (fut[0]) fut[0].players = [team, solo('Rustam', 1), solo('Anvar', 2), solo('Sanjar', 3)];
+  if (fut[1]) fut[1].players = [solo('Rustam', 1), solo('Anvar', 2)];
+  return games;
+}
+const KEY = 'fb_games_v3';
+function load() { try { const r = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(r) && r.length) return r; } catch (e) {} return seed(); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state.games)); } catch (e) {} }
+
+/* ---------- State ---------- */
+// tab: games (Asosiy = Register) | mine (Yozilgan o'yinlar) | profile | admin
+// open: o'yin ichi (ro'yxat) | form: ro'yxatdan o'tish formasi sahifasi
+const state = { games: load(), tab: 'games', open: null, form: null, week: 0 };
+const upcoming = () => state.games.filter(g => g.ts > Date.now()).sort((a, b) => a.ts - b.ts);
+const byId = id => state.games.find(g => g.id === id);
+const isReg = g => g.players.some(p => p.uid === ME.id);
+const myIndex = g => g.players.findIndex(p => p.uid === ME.id);
+const sizeOf = p => p.type === 'team' ? p.members.length : 1;
+
+/* Joylar hisobi: yozilish tartibida. Sig'masa, navbatga tushadi. */
+function calc(g) {
+  let used = 0, waiting = 0;
+  const flags = g.players.map(p => {
+    const s = sizeOf(p);
+    if (used + s <= g.limit) { used += s; return true; }
+    waiting += s; return false;
+  });
+  return { used, waiting, flags };
+}
+const statusOf = g => { const i = myIndex(g); return i < 0 ? null : (calc(g).flags[i] ? 'ok' : 'wait'); };
+
+/* ---------- Render ---------- */
+const $app = document.getElementById('app');
+const $nav = document.getElementById('nav');
+
+function avatarHtml() { return `<div class="avatar">${ME.photo ? `<img src="${esc(ME.photo)}">` : (ME.name ? esc(ME.name.charAt(0).toUpperCase()) : '👤')}</div>`; }
+// Tepada: liga nomi + kirgan foydalanuvchining nickname'i (@username, bo'lmasa ismi)
+const NICK = tu ? (tu.username ? '@' + tu.username : ME.name) : '';
+function topHtml() {
+  return `<div class="top"><div class="grow"><div class="league">Riga Street Power Liga</div>${NICK ? `<div class="sub">${esc(NICK)}</div>` : ''}</div><div class="ball">⚽</div></div>`;
+}
+function progress(g) {
+  const c = calc(g);
+  return `<div class="bar"><i style="width:${c.used / g.limit * 100}%"></i></div>
+    <div class="barrow"><span>${c.used}/${g.limit} o'yinchi</span><span>${c.waiting ? c.waiting + ' kishi navbatda' : (g.limit - c.used) + ' ta bo\'sh'}</span></div>`;
+}
+function actionBtn(g) {
+  if (g.ts <= Date.now()) return '<button class="btn ghost" disabled style="opacity:.6">O\'yin o\'tgan</button>';
+  return isReg(g)
+    ? `<button class="btn out" data-a="cancel" data-id="${g.id}">Ro'yxatdan chiqish</button>`
+    : `<button class="btn" data-a="reg" data-id="${g.id}">Ro'yxatdan o'tish</button>`;
+}
+function badge(g) {
+  if (g.ts <= Date.now()) return '<span class="tag full">O\'tgan</span>';
+  const s = statusOf(g);
+  if (s === 'ok') return '<span class="tag ok">Yozildingiz</span>';
+  if (s === 'wait') return '<span class="tag wait">Navbatda</span>';
+  return calc(g).used >= g.limit ? '<span class="tag full">To\'lgan</span>' : '';
+}
+
+/* Kalendar: o'yin kunlari belgilanadi */
+/* Hafta bo'yicha: tanlangan haftaning shanba va yakshanba o'yinlari */
+const weekStart = () => { const d = mondayOf(Date.now()); d.setDate(d.getDate() + state.week * 7); return d; };
+function weekGames() {
+  const s = weekStart(), e = new Date(s); e.setDate(e.getDate() + 7);
+  return state.games.filter(g => g.ts >= s.getTime() && g.ts < e.getTime()).sort((a, b) => a.ts - b.ts);
+}
+function weekNav() {
+  const s = weekStart(), e = new Date(s); e.setDate(e.getDate() + 6);
+  const range = s.getMonth() === e.getMonth()
+    ? `${s.getDate()}–${e.getDate()}-${MONTHS[e.getMonth()]}`
+    : `${s.getDate()}-${MONTHS[s.getMonth()]} – ${e.getDate()}-${MONTHS[e.getMonth()]}`;
+  const name = state.week === 0 ? 'Shu hafta' : state.week === 1 ? 'Keyingi hafta' : `${state.week} hafta keyin`;
+  return `<div class="cal-h"><button data-a="wk" data-id="-1" ${state.week <= 0 ? 'disabled' : ''}>‹</button>
+    <div style="text-align:center"><b>${name}</b><div class="g-sub" style="margin:2px 0 0">${range}</div></div>
+    <button data-a="wk" data-id="1" ${state.week >= MAX_WEEKS ? 'disabled' : ''}>›</button></div>`;
+}
+function calendarHtml() {
+  const s = weekStart(), now = new Date(), gs = weekGames();
+  let cells = WD.map(w => `<div class="cal-w">${w}</div>`).join('');
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(s); d.setDate(d.getDate() + i);
+    const g = gs.find(x => new Date(x.ts).toDateString() === d.toDateString());
+    const today = d.toDateString() === now.toDateString();
+    const cls = ['cal-d', today ? 'today' : '', g ? (isReg(g) ? 'game reg' : 'game') : ''].join(' ');
+    cells += g ? `<div class="${cls}" data-a="open" data-id="${g.id}">${d.getDate()}</div>` : `<div class="${cls}">${d.getDate()}</div>`;
+  }
+  return `<h3>Kalendar</h3><div class="card">
+    ${weekNav()}
+    <div class="cal-g">${cells}</div>
+    <div class="legend"><span><i style="background:#1d3a74"></i>O'yin kuni</span><span><i style="background:#14532d"></i>Siz yozilgansiz</span><span><i style="border:1px solid var(--blue)"></i>Bugun</span></div>
+  </div>`;
+}
+
+/* Asosiy sahifa = Register sahifasi */
+function viewGames() {
+  const list = upcoming();
+  if (!list.length) return topHtml() + `<div class="empty"><div class="big">📅</div>Hozircha o'yin yo'q.<br>Yangi o'yin qo'shilishini kuting.</div>` + calendarHtml();
+  const [next] = list;
+  const wg = weekGames();
+  const hero = `<div class="card hero">
+    <div class="label">Keyingi o'yin</div>
+    <div class="count" id="cd"><div><b>--</b><small>kun</small></div><div><b>--</b><small>soat</small></div><div><b>--</b><small>daqiqa</small></div><div><b>--</b><small>soniya</small></div></div>
+    <div class="title">${esc(next.title)}</div>
+    <div class="meta"><span>📅 ${fmtDate(next.ts)}</span><span>🕗 ${fmtTime(next.ts)}</span><span>📍 ${esc(next.place)}</span></div>
+    ${progress(next)}
+    ${actionBtn(next)}
+    <button class="btn ghost" data-a="open" data-id="${next.id}">Ro'yxatni ko'rish</button>
+  </div>`;
+  const more = `<h3>O'yin sanalari</h3><div class="card">${weekNav()}</div>` + (wg.length ? wg.map(g => {
+    const d = new Date(g.ts);
+    return `<div class="card link" data-a="open" data-id="${g.id}"><div class="row">
+      <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
+      <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
+      <div class="g-sub">${calc(g).used}/${g.limit} o'yinchi</div></div>
+      ${badge(g)}</div></div>`;
+  }).join('') : '<div class="empty"><div class="big">📅</div>Bu haftada o\'yin yo\'q.</div>');
+  return topHtml() + hero + more + calendarHtml();
+}
+
+/* O'yin ichi: ma'lumot + ro'yxat (telefon va email boshqalarga ko'rsatilmaydi) */
+function viewDetail() {
+  const g = byId(state.open);
+  if (!g) { state.open = null; return viewGames(); }
+  const flags = calc(g).flags;
+  const players = g.players.length ? g.players.map((p, i) => {
+    const mine = p.uid === ME.id;
+    const wait = !flags[i] ? '<span class="tag wait">Navbatda</span>' : '';
+    if (p.type === 'team') {
+      return `<div class="player"><div class="num">${i + 1}</div><div class="pav">👥</div>
+        <div class="grow"><div class="${mine ? 'me' : ''}">${esc(p.teamName || 'Jamoa')} · ${p.members.length} kishi${mine ? ' (siz)' : ''}</div>
+        <div class="g-sub">⭐ Kapitan: ${esc(p.members[p.captain] || '—')}</div>
+        <div class="g-sub">${esc(p.members.join(', '))}</div></div>${wait}</div>`;
+    }
+    return `<div class="player"><div class="num">${i + 1}</div><div class="pav">${esc(p.name.charAt(0).toUpperCase())}</div>
+      <div class="grow"><div class="${mine ? 'me' : ''}">${esc(p.name)}${mine ? ' (siz)' : ''}</div>
+      <div class="g-sub">Yakka o'yinchi</div></div>${wait}</div>`;
+  }).join('')
+    : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.<br>Birinchi bo'ling!</div>`;
+  return `<button class="back" data-a="back">← Orqaga</button>
+    <div class="card hero"><div class="label">O'yin</div><div class="title">${esc(g.title)}</div>
+      <div class="meta"><span>📅 ${fmtDate(g.ts)}</span><span>🕗 ${fmtTime(g.ts)}</span><span>📍 ${esc(g.place)}</span></div>
+      ${progress(g)}${actionBtn(g)}</div>
+    <h3>Ro'yxat</h3><div class="card">${players}</div>`;
+}
+
+/* Keyingi sahifa: avval jamoa/yakka tanlanadi, keyin forma */
+function viewForm() {
+  const f = state.form, g = byId(f.gameId);
+  if (!g) { state.form = null; return viewGames(); }
+  const size = f.type === 'team' ? TEAM_SIZE : 1;
+  const over = f.type && calc(g).used + size > g.limit;
+
+  let fields = '';
+  if (f.type === 'solo') {
+    fields = `
+      <div class="field-l">Ism</div>
+      <input type="text" data-f="name" maxlength="40" placeholder="Ismingiz" value="${esc(f.name)}">
+      <div class="field-l">Telefon raqam</div>
+      <input type="tel" data-f="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">
+      <div class="field-l">Email</div>
+      <input type="email" data-f="email" maxlength="60" placeholder="email@example.com" value="${esc(f.email)}">`;
+  } else if (f.type === 'team') {
+    const rows = f.members.map((m, i) => `<div class="mrow">
+      <input type="text" data-f="m${i}" maxlength="40" placeholder="${i + 1}-o'yinchi ismi" value="${esc(m)}">
+      <button class="capbtn ${f.captain === i ? 'on' : ''}" data-a="cap" data-id="${i}" title="Kapitan">⭐</button></div>`).join('');
+    fields = `
+      <div class="field-l">Jamoa nomi (ixtiyoriy)</div>
+      <input type="text" data-f="teamName" maxlength="40" placeholder="Masalan: Burgutlar" value="${esc(f.teamName)}">
+      <div class="field-l">${TEAM_SIZE} ta o'yinchi ismi</div>
+      ${rows}
+      <div class="hint">⭐ Kapitanni belgilang. Kapitan jamoa uchun javob beradi: kim keldi, kim kelmadi.</div>
+      <div class="field-l">Kapitan: ${esc((f.members[f.captain] || '').trim() || '—')}. Telefon raqami</div>
+      <input type="tel" data-f="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">`;
+  }
+
+  return `<button class="back" data-a="fback">← Orqaga</button>
+    <div class="card hero"><div class="label">Ro'yxatdan o'tish</div><div class="title">${esc(g.title)}</div>
+      <div class="meta"><span>📅 ${fmtDate(g.ts)}</span><span>🕗 ${fmtTime(g.ts)}</span><span>📍 ${esc(g.place)}</span></div></div>
+    <div class="card">
+      <div class="field-l" style="margin-top:0">Sizda jamoa bormi yoki yakka o'zingizmisiz?</div>
+      <div class="opts">
+        <button class="opt ${f.type === 'team' ? 'on' : ''}" data-a="type" data-id="team"><span class="ic">👥</span><b>Jamoam bor</b><small>${TEAM_SIZE} kishilik jamoa</small></button>
+        <button class="opt ${f.type === 'solo' ? 'on' : ''}" data-a="type" data-id="solo"><span class="ic">🙋</span><b>Yakka o'zim</b><small>Jamoasiz yozilaman</small></button>
+      </div>
+      ${fields}
+      ${over ? '<div class="note">Hozir joy yetarli emas. Siz navbat ro\'yxatiga yozilasiz.</div>' : ''}
+      ${f.type ? '<button class="btn" data-a="confirm">Tasdiqlash</button>' : ''}
+    </div>`;
+}
+
+/* Yozilgan o'yinlar: forma to'ldirilganda card bo'lib shu yerga tushadi */
+function viewMine() {
+  const mine = upcoming().filter(isReg);
+  const body = mine.length ? mine.map(g => {
+    const d = new Date(g.ts), p = g.players[myIndex(g)];
+    const who = p.type === 'team'
+      ? `<div class="g-sub">👥 ${esc(p.teamName || 'Jamoa')} · ${p.members.length} kishi</div><div class="g-sub">⭐ Kapitan: ${esc(p.members[p.captain] || '—')}</div>`
+      : `<div class="g-sub">🙋 ${esc(p.name)} · yakka</div>`;
+    return `<div class="card"><div class="row">
+      <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
+      <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
+        <div class="g-sub">📍 ${esc(g.place)}</div>${who}</div>
+      ${badge(g)}</div>
+      <div class="row" style="margin-top:12px;gap:8px">
+        <button class="btn ghost sm" style="flex:1" data-a="open" data-id="${g.id}">Ro'yxat</button>
+        <button class="btn out sm" style="flex:1" data-a="cancel" data-id="${g.id}">Bekor qilish</button>
+      </div></div>`;
+  }).join('')
+    : `<div class="empty"><div class="big">📝</div>Siz hali hech qaysi o'yinga yozilmagansiz.</div>`;
+  return topHtml() + `<h3 style="margin-top:4px">Yozilgan o'yinlar</h3>` + body;
+}
+
+function viewProfile() {
+  const total = state.games.filter(isReg).length;
+  return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(ME.name || 'Foydalanuvchi')}</div>
+    <div class="g-sub">${esc(ME.username) || 'username yo\'q'}</div></div></div></div>
+    <div class="stats"><div class="stat"><b>${total}</b><small>Yozilgan o'yinlar</small></div>
+    <div class="stat"><b>${upcoming().filter(isReg).length}</b><small>Kutilayotgan</small></div></div>`;
+}
+
+function viewAdmin() {
+  return topHtml() + `<div class="card"><div class="g-title">🛠 Admin panel</div>
+    <div class="g-sub" style="margin-top:8px">Bu yerda admin o'yin qo'shadi, o'chiradi va sozlamalarni o'zgartiradi. Tez orada qo'shiladi.</div></div>
+    <button class="btn ghost" data-a="reset">Namuna ma'lumotlarni tiklash</button>`;
+}
+
+function render() {
+  let html;
+  if (state.form) html = viewForm();
+  else if (state.tab === 'games') html = state.open ? viewDetail() : viewGames();
+  else if (state.tab === 'mine') html = state.open ? viewDetail() : viewMine();
+  else if (state.tab === 'profile') html = viewProfile();
+  else html = viewAdmin();
+  $app.innerHTML = html;
+  const tabs = [['games', '⚽', 'Asosiy'], ['mine', '📝', 'Yozilganlar'], ['profile', '👤', 'Profil']];
+  if (IS_ADMIN) tabs.push(['admin', '🛠', 'Admin']);
+  $nav.innerHTML = tabs.map(t => `<button data-a="tab" data-id="${t[0]}" class="${state.tab === t[0] ? 'on' : ''}"><span>${t[1]}</span>${t[2]}</button>`).join('');
+  tick();
+}
+
+function toast(t) {
+  const el = document.createElement('div'); el.className = 'toast'; el.textContent = t;
+  document.body.appendChild(el); setTimeout(() => el.remove(), 2400);
+}
+
+/* ---------- Countdown ---------- */
+function tick() {
+  const el = document.getElementById('cd'); const n = upcoming()[0];
+  if (!el || !n) return;
+  let s = Math.max(0, Math.floor((n.ts - Date.now()) / 1000));
+  const d = Math.floor(s / 86400); s %= 86400;
+  const h = Math.floor(s / 3600); s %= 3600;
+  const m = Math.floor(s / 60); s %= 60;
+  const v = [[d, 'kun'], [h, 'soat'], [m, 'daqiqa'], [s, 'soniya']];
+  el.innerHTML = v.map(x => `<div><b>${pad(x[0])}</b><small>${x[1]}</small></div>`).join('');
+}
+setInterval(tick, 1000);
+
+/* ---------- Actions ---------- */
+// input maydonlari qiymatini state ga yozib boradi
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.f;
+  if (!k || !state.form) return;
+  const f = state.form;
+  if (/^m\d$/.test(k)) f.members[+k.slice(1)] = e.target.value; else f[k] = e.target.value;
+});
+
+function submitForm() {
+  const f = state.form, g = byId(f.gameId);
+  let entry;
+  if (f.type === 'solo') {
+    if (f.name.trim().length < 2) return toast('Ismingizni kiriting');
+    if (!okPhone(f.phone)) return toast('Telefon raqamni to\'g\'ri kiriting');
+    if (!okEmail(f.email)) return toast('Email manzilni to\'g\'ri kiriting');
+    entry = { uid: ME.id, type: 'solo', name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim(), ts: Date.now() };
+  } else if (f.type === 'team') {
+    const ms = f.members.map(s => s.trim());
+    if (ms.some(s => s.length < 2)) return toast(`${TEAM_SIZE} ta o'yinchining hammasini kiriting`);
+    if (!okPhone(f.phone)) return toast('Kapitanning telefon raqamini kiriting');
+    entry = { uid: ME.id, type: 'team', teamName: f.teamName.trim(), members: ms, captain: f.captain, phone: f.phone.trim(), ts: Date.now() };
+  } else return toast('Avval tanlang: jamoa yoki yakka');
+
+  if (!isReg(g)) g.players.push(entry);
+  save();
+  const wait = statusOf(g) === 'wait';
+  state.form = null; state.open = null; state.tab = 'mine';
+  render(); window.scrollTo(0, 0);
+  toast(wait ? 'Navbatga yozildingiz' : 'Muvaffaqiyatli yozildingiz ✅');
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a, id = t.dataset.id;
+  haptic();
+  if (a === 'tab') { state.tab = id; state.open = null; state.form = null; render(); window.scrollTo(0, 0); }
+  else if (a === 'open') { state.open = +id; if (state.tab === 'profile' || state.tab === 'admin') state.tab = 'games'; render(); window.scrollTo(0, 0); }
+  else if (a === 'back') { state.open = null; render(); }
+  else if (a === 'reg') {
+    state.form = { gameId: +id, type: null, name: ME.name, phone: '', email: '', teamName: '', members: Array(TEAM_SIZE).fill(''), captain: 0 };
+    render(); window.scrollTo(0, 0);
+  }
+  else if (a === 'fback') { state.form = null; render(); }
+  else if (a === 'type') {
+    state.form.type = id;
+    if (id === 'team' && !state.form.members[0].trim()) state.form.members[0] = ME.name;
+    render();
+  }
+  else if (a === 'cap') { state.form.captain = +id; render(); }
+  else if (a === 'confirm') submitForm();
+  else if (a === 'cancel') {
+    const g = byId(+id); g.players = g.players.filter(p => p.uid !== ME.id);
+    save(); render(); toast('Ro\'yxatdan chiqdingiz');
+  }
+  else if (a === 'wk') { state.week = Math.min(MAX_WEEKS, Math.max(0, state.week + +id)); render(); }
+  else if (a === 'reset') { state.games = seed(); save(); render(); toast('Tiklandi'); }
+});
+
+render();
+</script>
+</body>
+</html>
