@@ -190,6 +190,20 @@ function loadProf() {
   catch (e) { return { name: '', phone: '', email: '' }; }
 }
 function saveProf(o) { try { localStorage.setItem(PROF_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
+/* Yozilgan o'yinlar tarixi: serverda ko'rinmay qolgan eski o'yinlar ham shu qurilmada saqlanadi */
+const HIST_KEY = 'rsp_hist_' + (tu ? tu.id : 'guest');
+function loadHist() { try { const a = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function saveHist(a) { try { localStorage.setItem(HIST_KEY, JSON.stringify(a.slice(0, 300))); } catch (e) {} }
+function syncHist() {
+  if (!state.me || !tu) return;
+  const h = loadHist(), ids = new Set(state.games.map(g => g.id));
+  const out = h.filter(x => !ids.has(x.id));            // serverda endi yo'q (eski) o'yinlar saqlanib qoladi
+  state.games.forEach(g => {
+    const p = g.players.find(q => q.mine); if (!p) return;  // bekor qilingan bo'lsa tarixdan chiqadi
+    out.push({ id: g.id, ts: g.ts, title: g.title, place: g.place, mapUrl: g.mapUrl, kind: p.kind, name: p.name, members: p.members || [], captain: p.captain, waiting: !!p.waiting });
+  });
+  saveHist(out);
+}
 const profile = loadProf();                              // Profil sozlamalari (shu qurilmada saqlanadi)
 const shownName = () => profile.name || MY_NAME;
 const nick = () => profile.name ? profile.name : (tu ? (tu.username ? '@' + tu.username : MY_NAME) : '');
@@ -256,6 +270,7 @@ async function api(path, body) {
 function applyState(s) {
   state.me = s.me; state.games = s.games; state.admins = s.admins || [];
   state.loaded = true; state.error = '';
+  syncHist();
 }
 const isEditing = () => !!(state.form || state.aform || state.pform) ||
   !!(document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
@@ -507,7 +522,33 @@ function viewProfile() {
   return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(shownName() || 'Foydalanuvchi')}</div>
     <div class="g-sub">${tu && tu.username ? '@' + esc(tu.username) : `username yo'q`}</div>
     ${tu ? `<div class="g-sub">Telegram ID: <b>${tu.id}</b></div>` : ''}</div>${role}</div></div>
-    ${stats}<div class="sec-l">Sozlamalar</div><div class="menu">${rows}</div>`;
+    ${stats}<div class="sec-l">Sozlamalar</div><div class="menu">${rows}</div>${isAdmin() ? '' : myGamesHtml()}`;
+}
+
+/* Profilda: men yozilgan barcha o'yinlar (yangisi tepada) */
+function myGamesHtml() {
+  const h = loadHist().sort((a, b) => b.ts - a.ts);
+  const head = `<div class="sec-h" style="margin-top:6px"><div class="sec-l" style="margin:0">Yozilgan o'yinlarim</div><span class="g-sub" style="margin:0">${h.length} ta</span></div>`;
+  if (!h.length) return head + `<div class="card"><div class="g-sub">Hali hech qaysi o'yinga yozilmagansiz.</div></div>`;
+  return head + `<div class="menu">` + h.map(x => {
+    const d = new Date(x.ts), past = x.ts <= Date.now();
+    const tag = past ? `<span class="tag full">O'tgan</span>` : (x.waiting ? `<span class="tag wait">Navbatda</span>` : `<span class="tag ok">Yozildingiz</span>`);
+    return `<div class="li" data-a="pgame" data-id="${x.id}"><div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
+      <div class="grow"><div class="li-t">${DAYS[d.getDay()]}, ${fmtTime(x.ts)}</div><div class="li-s">📍 ${x.place ? esc(x.place) : `Joy e'lon qilinmagan`}</div></div>${tag}<div class="chev">›</div></div>`;
+  }).join('') + `</div>`;
+}
+/* Eski (serverda endi ko'rinmaydigan) o'yin tafsiloti: sana, vaqt, joy va mening yozuvim */
+function viewHistGame() {
+  const x = loadHist().find(h => h.id === state.open);
+  if (!x) { state.open = null; return viewProfile(); }
+  const past = x.ts <= Date.now();
+  const tag = past ? `<span class="tag full">O'tgan</span>` : (x.waiting ? `<span class="tag wait">Navbatda</span>` : `<span class="tag ok">Yozildingiz</span>`);
+  const who = x.kind === 'team'
+    ? `<div class="g-title">👥 ${esc(x.name)}</div><div class="g-sub">⭐ Kapitan: ${esc(x.members[x.captain] || '—')}</div><div class="g-sub">${esc(x.members.join(', '))}</div>`
+    : `<div class="g-title">🙋 ${esc(x.name)}</div><div class="g-sub">Yakka o'yinchi</div>`;
+  return `<button class="back" data-a="back">← Orqaga</button>
+    <div class="card hero"><div class="label">O'yin</div><div class="title">${esc(x.title || "Futbol o'yini")}</div>${metaHtml(x)}<div>${tag}</div></div>
+    <h3>Mening yozuvim</h3><div class="card">${who}</div>`;
 }
 
 function viewProfileEdit() {
@@ -632,7 +673,7 @@ function render() {
   else if (state.form) html = viewForm();
   else if (state.tab === 'games') html = state.open ? viewDetail() : viewGames();
   else if (state.tab === 'mine') html = state.open ? viewDetail() : viewMine();
-  else if (state.tab === 'profile') html = viewProfile();
+  else if (state.tab === 'profile') html = state.open ? (byId(state.open) ? viewDetail() : viewHistGame()) : viewProfile();
   else html = state.open ? viewDetail() : viewAdmin();
   $app.innerHTML = html;
   const tabs = [['games', '⚽', 'Asosiy'], ['mine', '📝', 'Yozilganlar'], ['profile', '👤', 'Profil']];
@@ -725,6 +766,7 @@ document.addEventListener('click', async e => {
   if (a === 'tab') { state.tab = id; state.open = null; state.adminView = null; state.profView = null; state.pform = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
   else if (a === 'open') { state.open = +id; if (state.tab === 'profile') state.tab = 'games'; render(); window.scrollTo(0, 0); }
   else if (a === 'back') { state.open = null; render(); }
+  else if (a === 'pgame') { state.open = +id; render(); window.scrollTo(0, 0); }
   else if (a === 'pedit') { state.profView = 'edit'; state.pform = { name: profile.name, phone: profile.phone, email: profile.email }; render(); window.scrollTo(0, 0); }
   else if (a === 'pback') { state.profView = null; state.pform = null; render(); }
   else if (a === 'psave') {
@@ -744,7 +786,7 @@ document.addEventListener('click', async e => {
   else if (a === 'adm') { state.adminView = id; render(); window.scrollTo(0, 0); }
   else if (a === 'admback') { state.adminView = null; render(); window.scrollTo(0, 0); }
   else if (a === 'retry') { state.error = ''; render(); refresh(false); }
-  else if (a === 'map') { const g = byId(+id); if (g && g.mapUrl) { if (tg && tg.openLink) tg.openLink(g.mapUrl); else window.open(g.mapUrl, '_blank', 'noopener'); } }
+  else if (a === 'map') { const g = byId(+id) || loadHist().find(h => h.id === +id); if (g && g.mapUrl) { if (tg && tg.openLink) tg.openLink(g.mapUrl); else window.open(g.mapUrl, '_blank', 'noopener'); } }
   else if (a === 'wk') { state.week = Math.min(MAX_WEEKS, Math.max(0, state.week + +id)); render(); }
   else if (a === 'reg') {
     if (!state.me) return toast(`Telegram ichida oching, shunda ro'yxatdan o'tish mumkin`);
