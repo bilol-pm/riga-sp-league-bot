@@ -522,7 +522,7 @@ function viewProfile() {
   return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(shownName() || 'Foydalanuvchi')}</div>
     <div class="g-sub">${tu && tu.username ? '@' + esc(tu.username) : `username yo'q`}</div>
     ${tu ? `<div class="g-sub">Telegram ID: <b>${tu.id}</b></div>` : ''}</div>${role}</div></div>
-    ${stats}<div class="sec-l">Sozlamalar</div><div class="menu">${rows}</div>${isAdmin() ? '' : myGamesHtml()}`;
+    ${stats}<div class="sec-l">Sozlamalar</div><div class="menu">${rows}</div>${myGamesHtml()}`;
 }
 
 /* Profilda: men yozilgan barcha o'yinlar (yangisi tepada) */
