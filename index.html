@@ -19,7 +19,21 @@
   #app{width:100%;max-width:480px;min-height:100vh;min-height:100dvh;padding:14px 14px 100px}
   button{font:inherit;color:inherit;border:0;cursor:pointer}
 
-  .top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:30}
+  .langbox{position:relative;flex:none}
+  .langbtn{display:flex;align-items:center;gap:6px;height:38px;padding:0 12px;border-radius:19px;border:1px solid var(--line);background:linear-gradient(180deg,var(--card2),var(--card));color:var(--text);font-family:inherit;font-weight:700;font-size:12px;line-height:1;letter-spacing:.06em;cursor:pointer;transition:border-color .15s,transform .1s}
+  .langbtn svg{color:var(--blue)}
+  .langbtn:active{transform:scale(.96)}
+  .langbtn.on{border-color:var(--blue)}
+  .langmenu{position:absolute;right:0;top:46px;min-width:176px;padding:6px;border-radius:16px;background:var(--card2);border:1px solid var(--line);box-shadow:0 14px 34px rgba(0,0,0,.5);animation:langin .16s ease-out;transform-origin:top right}
+  @keyframes langin{from{opacity:0;transform:translateY(-6px) scale(.96)}to{opacity:1;transform:none}}
+  .langopt{display:flex;align-items:center;gap:10px;width:100%;padding:10px;border:0;border-radius:11px;background:transparent;color:var(--text);font-family:inherit;font-weight:500;font-size:14px;line-height:1.2;text-align:left;cursor:pointer}
+  .langopt:active{background:rgba(255,255,255,.06)}
+  .langopt.on{background:rgba(220,74,95,.14)}
+  .lcode{flex:none;width:30px;height:24px;display:grid;place-items:center;border-radius:7px;background:var(--card);border:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted)}
+  .langopt.on .lcode{background:var(--blue);border-color:var(--blue);color:#fff}
+  .lname{flex:1}
+  .lchk{color:var(--blue);font-weight:800}
   .avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#dc4a5f,#f0a35e);
     display:grid;place-items:center;font-weight:700;font-size:18px;overflow:hidden;flex:none}
   .avatar img{width:100%;height:100%;object-fit:cover}
@@ -208,13 +222,52 @@ const profile = loadProf();                              // Profil sozlamalari (
 const shownName = () => profile.name || MY_NAME;
 const nick = () => profile.name ? profile.name : (tu ? (tu.username ? '@' + tu.username : MY_NAME) : '');
 
+/* ---------- Til: uz / en / ru ---------- */
+const LANGS = [['uz', "O'zbekcha", 'UZ'], ['en', 'English', 'EN'], ['ru', 'Русский', 'RU']];
+const LANG_KEY = 'rsp_lang';
+const I18N = {"en": {"Riga Street Power Liga": "Riga Street Power League", "Asosiy": "Home", "Yozilganlar": "Registrations", "Profil": "Profile", "Yuklanmoqda…": "Loading…", "Qayta urinish": "Try again", "Ro'yxatdan o'tish uchun bu sahifani Telegramdagi bot orqali oching.": "To register, open this page through the Telegram bot.", "Hozircha rejalashtirilgan o'yin yo'q.": "No games are scheduled yet.", "Yangi o'yin e'lon qilinishini kuting.": "Wait for a new game to be announced.", "Keyingi o'yin": "Next game", "kun": "days", "soat": "hours", "daqiqa": "minutes", "soniya": "seconds", "{n} ta bo'sh joy": "{n} spots left", "Joy qolmagan (navbatga yozilasiz)": "No spots left (you will join the waiting list)", "{a}/{b} o'yinchi": "{a}/{b} players", "{n} kishi navbatda": "{n} on the waiting list", "Joy keyin e'lon qilinadi": "Location to be announced", "O'yin o'tgan": "Game has passed", "Ro'yxatdan chiqish": "Cancel registration", "Ro'yxatdan o'tish": "Register", "O'tgan": "Past", "Yozildingiz": "Registered", "Navbatda": "Waiting", "To'lgan": "Full", "Shu hafta": "This week", "Keyingi hafta": "Next week", "{n} hafta keyin": "In {n} weeks", "Kalendar": "Calendar", "O'yin kuni": "Game day", "Siz yozilgansiz": "You are registered", "Bugun": "Today", "Admin: bo'sh kunni bossangiz, shu kunga yangi o'yin qo'shiladi.": "Admin: tap an empty day to add a new game on that date.", "Ro'yxatni ko'rish": "Details", "{n} kishi": "{n} players", "(siz)": "(you)", "Kapitan: {name}": "Captain: {name}", "Yakka o'yinchi": "Solo player", "O'chirish": "Delete", "O'yinchilar": "Players", "Bo'sh joy": "Free spots", "Jamoalar": "Teams", "Yakkalar": "Solo", "Yozuvlar": "Entries", "Yakka o'yinchilar": "Solo players", "Hali hech kim yozilmagan.": "Nobody has registered yet.", "Mening yozuvim": "My registration", "Siz hali bu o'yinga yozilmagansiz.": "You haven't registered for this game yet.", "Tahrirlash": "Edit", "O'yin": "Game", "← Orqaga": "← Back", "Ism": "Name", "Ismingiz": "Your name", "Telefon raqam": "Phone number", "{n}-o'yinchi ismi": "Player {n} name", "Kapitan": "Captain", "Jamoa nomi (ixtiyoriy)": "Team name (optional)", "Masalan: Burgutlar": "e.g. Eagles", "{n} ta o'yinchi ismi": "Names of {n} players", "⭐ Kapitanni belgilang. Kapitan jamoa uchun javob beradi: kim keldi, kim kelmadi.": "⭐ Mark the captain. The captain is responsible for the team: who came and who did not.", "Kapitan: {name}. Telefon raqami": "Captain: {name}. Phone number", "Sizda jamoa bormi yoki yakka o'zingizmisiz?": "Do you have a team, or are you playing solo?", "Jamoam bor": "I have a team", "{n} kishilik jamoa": "Team of {n}", "Yakka o'zim": "Just me", "Jamoasiz yozilaman": "Joining without a team", "Hozir joy yetarli emas. Siz navbat ro'yxatiga yozilasiz.": "Not enough spots right now. You will be added to the waiting list.", "Tasdiqlash": "Confirm", "{n} jamoa": "{n} teams", "{n} yakka": "{n} solo", "Joy kiritilmagan": "No location set", "Faqat eng yaqin 3 tasini ko'rsatish": "Show only the nearest 3", "Hammasini ko'rish ({n})": "Show all ({n})", "Eng yaqin 3 ta o'yin": "Nearest 3 games", "Hali o'yinlar yo'q.": "No games yet.", "yakka": "solo", "Bekor qilish": "Cancel", "Siz hali hech qaysi o'yinga yozilmagansiz.": "You haven't registered for any game yet.", "Yozilgan o'yinlar": "My registrations", "Asoschi": "Owner", "Admin": "Admin", "Kutilayotgan": "Upcoming", "Mening ma'lumotlarim": "My details", "Ism, telefon, email": "Name, phone, email", "{id} · nusxalash uchun bosing": "{id} · tap to copy", "Foydalanuvchi": "User", "username yo'q": "no username", "Sozlamalar": "Settings", "Yozilgan o'yinlarim": "My games", "{n} ta": "{n}", "Hali hech qaysi o'yinga yozilmagansiz.": "You haven't registered for any game yet.", "Joy e'lon qilinmagan": "Location not announced", "Futbol o'yini": "Football game", "Bu ma'lumotlar ro'yxatdan o'tish formasida avtomatik to'ldiriladi. Ular shu qurilmada saqlanadi.": "These details are filled in automatically on the registration form. They are stored on this device.", "Saqlash": "Save", "Tozalash": "Clear", "Yangi o'yin qo'shish": "Add new game", "Sana, vaqt, joy va sig'im": "Date, time, location and capacity", "O'yinlar": "Games", "{n} ta rejalashtirilgan": "{n} scheduled", "Hali o'yin yo'q": "No games yet", "Ro'yxatdan o'tganlar": "Registered players", "{a} ta yozuv · {b} o'yinchi": "{a} entries · {b} players", "Hali hech kim yozilmagan": "Nobody has registered yet", "Statistika": "Statistics", "Bo'sh joylar, jamoalar, navbat": "Free spots, teams, waiting list", "Boshqaruv": "Management", "Adminlar": "Admins", "{n} ta admin": "{n} admins", "Faqat siz (asoschi)": "Only you (owner)", "+ Yangi o'yin": "+ New game", "Hali o'yin qo'shilmagan.": "No games added yet.", "Ro'yxat": "List", "Har bir o'yin": "Each game", "Nomsiz": "Unnamed", "Hozircha adminlar yo'q. Faqat siz (asoschi) borsiz.": "No admins yet. Only you (owner) are here.", "Yangi admin qo'shish": "Add new admin", "Telegram ID": "Telegram ID", "Ismi (ixtiyoriy)": "Name (optional)", "Masalan: 123456789": "e.g. 123456789", "Masalan: Do'stim": "e.g. My friend", "Admin bo'ladigan odam Mini App'ni ochib, Profil sahifasidagi Telegram ID raqamini sizga yuborsin.": "The future admin should open the Mini App and send you the Telegram ID shown on their Profile page.", "Admin qo'shish": "Add admin", "O'yinni tahrirlash": "Edit game", "Yangi o'yin": "New game", "Sana": "Date", "Boshlanish vaqti": "Start time", "Joy (lokatsiya nomi)": "Location (name)", "Masalan: Imanta stadioni": "e.g. Imanta stadium", "Xarita havolasi (ixtiyoriy)": "Map link (optional)", "O'yinchilar soni (sig'im)": "Number of players (capacity)", "{n} × jamoalar soni. 3 jamoa = {a}, 4 jamoa = {b}.": "{n} × number of teams. 3 teams = {a}, 4 teams = {b}.", "Sarlavha (ixtiyoriy)": "Title (optional)", "O'yinni qo'shish": "Add game", "Muvaffaqiyatli yozildingiz ✅": "Registered successfully ✅", "Navbatga yozildingiz": "You joined the waiting list", "Ro'yxatdan chiqdingiz": "You have cancelled your registration", "Ismingizni kiriting": "Enter your name", "Telefon raqamni to'g'ri kiriting": "Enter a valid phone number", "Email manzilni to'g'ri kiriting": "Enter a valid email address", "{n} ta o'yinchining hammasini kiriting": "Enter all {n} players", "Kapitanning telefon raqamini kiriting": "Enter the captain's phone number", "Avval tanlang: jamoa yoki yakka": "First choose: team or solo", "Sana va vaqtni kiriting": "Enter the date and time", "Sana yoki vaqt noto'g'ri": "Invalid date or time", "O'rinlar soni 1 dan 200 gacha bo'lsin": "Capacity must be between 1 and 200", "Saqlandi ✅": "Saved ✅", "O'yin qo'shildi ✅": "Game added ✅", "O'yin o'chirildi": "Game deleted", "Yozuv o'chirildi": "Entry deleted", "Admin qo'shildi ✅": "Admin added ✅", "Admin o'chirildi": "Admin removed", "Telegram ID faqat raqamlardan iborat bo'lsin": "Telegram ID must contain digits only", "Ism juda qisqa": "Name is too short", "Saqlab bo'lmadi": "Could not save", "Tozalandi": "Cleared", "ID nusxalandi": "ID copied", "Telegram ichida oching, shunda ro'yxatdan o'tish mumkin": "Open inside Telegram to register", "Bu o'yinni va unga yozilganlarning hammasini o'chirasizmi?": "Delete this game and everyone registered for it?", "Bu yozuvni ro'yxatdan o'chirasizmi?": "Remove this entry from the list?", "Bu adminni o'chirasizmi?": "Remove this admin?", "Xatolik": "Error", "Xatolik yuz berdi": "Something went wrong", "Server manzili sozlanmagan": "Server address is not configured", "Server bilan aloqa yo'q. Internetni tekshiring.": "No connection to the server. Check your internet.", "Sessiya eskirgan. Ilovani yopib, qayta oching.": "Session expired. Close and reopen the app.", "Telegram ichida oching, shunda ro'yxatdan o'tish mumkin.": "Open inside Telegram to register.", "Bu amal faqat adminlar uchun.": "This action is for admins only.", "Bu amal faqat asoschi uchun.": "This action is for the owner only.", "O'yin tanlanmagan": "No game selected", "O'yin topilmadi": "Game not found", "Bu o'yin allaqachon o'tgan": "This game has already passed", "Kapitanni belgilang": "Mark the captain", "Siz bu o'yinga allaqachon yozilgansiz": "You are already registered for this game", "O'yin boshlangan, bekor qilib bo'lmaydi": "The game has started, it can't be cancelled", "Xarita havolasi http:// yoki https:// bilan boshlansin": "The map link must start with http:// or https://", "Yozuv tanlanmagan": "No entry selected", "Bu ID asoschiga tegishli, qo'shish shart emas": "This ID belongs to the owner, no need to add it", "Admin tanlanmagan": "No admin selected", "So'rov juda katta": "Request is too large", "Noto'g'ri so'rov": "Invalid request", "Topilmadi": "Not found"}, "ru": {"Riga Street Power Liga": "Riga Street Power League", "Asosiy": "Главная", "Yozilganlar": "Записи", "Profil": "Профиль", "Yuklanmoqda…": "Загрузка…", "Qayta urinish": "Повторить", "Ro'yxatdan o'tish uchun bu sahifani Telegramdagi bot orqali oching.": "Чтобы записаться, откройте страницу через Telegram-бота.", "Hozircha rejalashtirilgan o'yin yo'q.": "Пока нет запланированных игр.", "Yangi o'yin e'lon qilinishini kuting.": "Ждите объявления новой игры.", "Keyingi o'yin": "Ближайшая игра", "kun": "дней", "soat": "часов", "daqiqa": "минут", "soniya": "секунд", "{n} ta bo'sh joy": "Свободных мест: {n}", "Joy qolmagan (navbatga yozilasiz)": "Мест нет (вы попадёте в лист ожидания)", "{a}/{b} o'yinchi": "Игроков: {a}/{b}", "{n} kishi navbatda": "В ожидании: {n}", "Joy keyin e'lon qilinadi": "Место будет объявлено позже", "O'yin o'tgan": "Игра прошла", "Ro'yxatdan chiqish": "Отменить запись", "Ro'yxatdan o'tish": "Записаться", "O'tgan": "Прошла", "Yozildingiz": "Вы записаны", "Navbatda": "В очереди", "To'lgan": "Мест нет", "Shu hafta": "Эта неделя", "Keyingi hafta": "Следующая неделя", "{n} hafta keyin": "Через {n} нед.", "Kalendar": "Календарь", "O'yin kuni": "День игры", "Siz yozilgansiz": "Вы записаны", "Bugun": "Сегодня", "Admin: bo'sh kunni bossangiz, shu kunga yangi o'yin qo'shiladi.": "Админ: нажмите на пустой день, чтобы добавить игру на эту дату.", "Ro'yxatni ko'rish": "Подробнее", "{n} kishi": "{n} чел.", "(siz)": "(вы)", "Kapitan: {name}": "Капитан: {name}", "Yakka o'yinchi": "Одиночный игрок", "O'chirish": "Удалить", "O'yinchilar": "Игроки", "Bo'sh joy": "Свободно", "Jamoalar": "Команды", "Yakkalar": "Одиночки", "Yozuvlar": "Записи", "Yakka o'yinchilar": "Одиночные игроки", "Hali hech kim yozilmagan.": "Пока никто не записался.", "Mening yozuvim": "Моя запись", "Siz hali bu o'yinga yozilmagansiz.": "Вы ещё не записались на эту игру.", "Tahrirlash": "Изменить", "O'yin": "Игра", "← Orqaga": "← Назад", "Ism": "Имя", "Ismingiz": "Ваше имя", "Telefon raqam": "Номер телефона", "{n}-o'yinchi ismi": "Имя игрока {n}", "Kapitan": "Капитан", "Jamoa nomi (ixtiyoriy)": "Название команды (необязательно)", "Masalan: Burgutlar": "Например: Орлы", "{n} ta o'yinchi ismi": "Имена {n} игроков", "⭐ Kapitanni belgilang. Kapitan jamoa uchun javob beradi: kim keldi, kim kelmadi.": "⭐ Отметьте капитана. Капитан отвечает за команду: кто пришёл, а кто нет.", "Kapitan: {name}. Telefon raqami": "Капитан: {name}. Номер телефона", "Sizda jamoa bormi yoki yakka o'zingizmisiz?": "У вас есть команда или вы один?", "Jamoam bor": "У меня есть команда", "{n} kishilik jamoa": "Команда из {n}", "Yakka o'zim": "Я один", "Jamoasiz yozilaman": "Записываюсь без команды", "Hozir joy yetarli emas. Siz navbat ro'yxatiga yozilasiz.": "Сейчас недостаточно мест. Вы попадёте в лист ожидания.", "Tasdiqlash": "Подтвердить", "{n} jamoa": "Команд: {n}", "{n} yakka": "Одиночек: {n}", "Joy kiritilmagan": "Место не указано", "Faqat eng yaqin 3 tasini ko'rsatish": "Показать только ближайшие 3", "Hammasini ko'rish ({n})": "Показать все ({n})", "Eng yaqin 3 ta o'yin": "Ближайшие 3 игры", "Hali o'yinlar yo'q.": "Игр пока нет.", "yakka": "один", "Bekor qilish": "Отменить", "Siz hali hech qaysi o'yinga yozilmagansiz.": "Вы ещё не записались ни на одну игру.", "Yozilgan o'yinlar": "Мои записи", "Asoschi": "Владелец", "Admin": "Админ", "Kutilayotgan": "Предстоящие", "Mening ma'lumotlarim": "Мои данные", "Ism, telefon, email": "Имя, телефон, email", "{id} · nusxalash uchun bosing": "{id} · нажмите, чтобы скопировать", "Foydalanuvchi": "Пользователь", "username yo'q": "нет username", "Sozlamalar": "Настройки", "Yozilgan o'yinlarim": "Мои игры", "{n} ta": "{n}", "Hali hech qaysi o'yinga yozilmagansiz.": "Вы ещё не записались ни на одну игру.", "Joy e'lon qilinmagan": "Место не объявлено", "Futbol o'yini": "Футбольная игра", "Bu ma'lumotlar ro'yxatdan o'tish formasida avtomatik to'ldiriladi. Ular shu qurilmada saqlanadi.": "Эти данные автоматически подставляются в форму записи. Они хранятся на этом устройстве.", "Saqlash": "Сохранить", "Tozalash": "Очистить", "Yangi o'yin qo'shish": "Добавить игру", "Sana, vaqt, joy va sig'im": "Дата, время, место и вместимость", "O'yinlar": "Игры", "{n} ta rejalashtirilgan": "Запланировано: {n}", "Hali o'yin yo'q": "Игр пока нет", "Ro'yxatdan o'tganlar": "Записавшиеся", "{a} ta yozuv · {b} o'yinchi": "Записей: {a} · игроков: {b}", "Hali hech kim yozilmagan": "Пока никто не записался", "Statistika": "Статистика", "Bo'sh joylar, jamoalar, navbat": "Свободные места, команды, очередь", "Boshqaruv": "Управление", "Adminlar": "Админы", "{n} ta admin": "Админов: {n}", "Faqat siz (asoschi)": "Только вы (владелец)", "+ Yangi o'yin": "+ Новая игра", "Hali o'yin qo'shilmagan.": "Игры ещё не добавлены.", "Ro'yxat": "Список", "Har bir o'yin": "По каждой игре", "Nomsiz": "Без имени", "Hozircha adminlar yo'q. Faqat siz (asoschi) borsiz.": "Админов пока нет. Есть только вы (владелец).", "Yangi admin qo'shish": "Добавить админа", "Telegram ID": "Telegram ID", "Ismi (ixtiyoriy)": "Имя (необязательно)", "Masalan: 123456789": "Например: 123456789", "Masalan: Do'stim": "Например: Друг", "Admin bo'ladigan odam Mini App'ni ochib, Profil sahifasidagi Telegram ID raqamini sizga yuborsin.": "Пусть будущий админ откроет Mini App и пришлёт вам Telegram ID со страницы «Профиль».", "Admin qo'shish": "Добавить админа", "O'yinni tahrirlash": "Изменить игру", "Yangi o'yin": "Новая игра", "Sana": "Дата", "Boshlanish vaqti": "Время начала", "Joy (lokatsiya nomi)": "Место (название)", "Masalan: Imanta stadioni": "Например: стадион Иманта", "Xarita havolasi (ixtiyoriy)": "Ссылка на карту (необязательно)", "O'yinchilar soni (sig'im)": "Количество игроков (вместимость)", "{n} × jamoalar soni. 3 jamoa = {a}, 4 jamoa = {b}.": "{n} × число команд. 3 команды = {a}, 4 команды = {b}.", "Sarlavha (ixtiyoriy)": "Название (необязательно)", "O'yinni qo'shish": "Добавить игру", "Muvaffaqiyatli yozildingiz ✅": "Вы успешно записаны ✅", "Navbatga yozildingiz": "Вы в листе ожидания", "Ro'yxatdan chiqdingiz": "Вы отменили запись", "Ismingizni kiriting": "Введите ваше имя", "Telefon raqamni to'g'ri kiriting": "Введите корректный номер телефона", "Email manzilni to'g'ri kiriting": "Введите корректный email", "{n} ta o'yinchining hammasini kiriting": "Введите всех {n} игроков", "Kapitanning telefon raqamini kiriting": "Введите номер телефона капитана", "Avval tanlang: jamoa yoki yakka": "Сначала выберите: команда или один", "Sana va vaqtni kiriting": "Укажите дату и время", "Sana yoki vaqt noto'g'ri": "Неверная дата или время", "O'rinlar soni 1 dan 200 gacha bo'lsin": "Вместимость — от 1 до 200", "Saqlandi ✅": "Сохранено ✅", "O'yin qo'shildi ✅": "Игра добавлена ✅", "O'yin o'chirildi": "Игра удалена", "Yozuv o'chirildi": "Запись удалена", "Admin qo'shildi ✅": "Админ добавлен ✅", "Admin o'chirildi": "Админ удалён", "Telegram ID faqat raqamlardan iborat bo'lsin": "Telegram ID должен состоять только из цифр", "Ism juda qisqa": "Имя слишком короткое", "Saqlab bo'lmadi": "Не удалось сохранить", "Tozalandi": "Очищено", "ID nusxalandi": "ID скопирован", "Telegram ichida oching, shunda ro'yxatdan o'tish mumkin": "Откройте в Telegram, чтобы записаться", "Bu o'yinni va unga yozilganlarning hammasini o'chirasizmi?": "Удалить эту игру и все записи на неё?", "Bu yozuvni ro'yxatdan o'chirasizmi?": "Удалить эту запись из списка?", "Bu adminni o'chirasizmi?": "Удалить этого админа?", "Xatolik": "Ошибка", "Xatolik yuz berdi": "Произошла ошибка", "Server manzili sozlanmagan": "Адрес сервера не настроен", "Server bilan aloqa yo'q. Internetni tekshiring.": "Нет связи с сервером. Проверьте интернет.", "Sessiya eskirgan. Ilovani yopib, qayta oching.": "Сессия истекла. Закройте и откройте приложение заново.", "Telegram ichida oching, shunda ro'yxatdan o'tish mumkin.": "Откройте в Telegram, чтобы записаться.", "Bu amal faqat adminlar uchun.": "Это действие доступно только админам.", "Bu amal faqat asoschi uchun.": "Это действие доступно только владельцу.", "O'yin tanlanmagan": "Игра не выбрана", "O'yin topilmadi": "Игра не найдена", "Bu o'yin allaqachon o'tgan": "Эта игра уже прошла", "Kapitanni belgilang": "Отметьте капитана", "Siz bu o'yinga allaqachon yozilgansiz": "Вы уже записаны на эту игру", "O'yin boshlangan, bekor qilib bo'lmaydi": "Игра началась, отменить запись нельзя", "Xarita havolasi http:// yoki https:// bilan boshlansin": "Ссылка на карту должна начинаться с http:// или https://", "Yozuv tanlanmagan": "Запись не выбрана", "Bu ID asoschiga tegishli, qo'shish shart emas": "Этот ID принадлежит владельцу, добавлять не нужно", "Admin tanlanmagan": "Админ не выбран", "So'rov juda katta": "Запрос слишком большой", "Noto'g'ri so'rov": "Неверный запрос", "Topilmadi": "Не найдено"}};
+function initLang() {
+  try { const v = localStorage.getItem(LANG_KEY); if (LANGS.some(l => l[0] === v)) return v; } catch (e) {}
+  const c = String((tu && tu.language_code) || navigator.language || '').toLowerCase();
+  if (c.startsWith('uz')) return 'uz';
+  if (c.startsWith('ru')) return 'ru';
+  return c ? 'en' : 'uz';
+}
+let LANG = initLang();
+// Kalit: o'zbekcha matn. {nom} joylar qiymat bilan almashtiriladi.
+function t(s, v) {
+  let r = (I18N[LANG] && I18N[LANG][s]) || s;
+  if (v) r = r.replace(/\{(\w+)\}/g, (m, k) => (v[k] != null ? v[k] : m));
+  return r;
+}
+const srvErr = m => { const x = /^(\d+) ta o'yinchining hammasini kiriting$/.exec(m || ''); return x ? t("{n} ta o'yinchining hammasini kiriting", { n: x[1] }) : t(m); };
+const DAYS_L = {
+  uz: ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'],
+  en: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+  ru: ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота']
+};
+const WD_L = { uz: ['Du','Se','Ch','Pa','Ju','Sh','Ya'], en: ['Mo','Tu','We','Th','Fr','Sa','Su'], ru: ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'] };
+const MONTHS_L = {
+  uz: ['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'],
+  en: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  ru: ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']
+};
+const MON_SHORT_RU = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const dayName = i => DAYS_L[LANG][i];
+const weekdays = () => WD_L[LANG];
+const monShort = i => LANG === 'ru' ? MON_SHORT_RU[i] : MONTHS_L[LANG][i].slice(0, 3);
+// "22-noyabr" | "Nov 22" | "22 ноября"
+const dm = (day, mi) => LANG === 'en' ? `${MONTHS_L.en[mi]} ${day}` : LANG === 'ru' ? `${day} ${MONTHS_L.ru[mi]}` : `${day}-${MONTHS_L.uz[mi]}`;
+const gTitle = g => (!g.title || g.title === "Futbol o'yini") ? t("Futbol o'yini") : g.title;
+function setLang(l) {
+  LANG = l; try { localStorage.setItem(LANG_KEY, l); } catch (e) {}
+  document.documentElement.lang = l; document.title = t('Riga Street Power Liga');
+}
+
 /* ---------- Yordamchilar ---------- */
-const DAYS = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
-const MONTHS = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'];
-const WD = ['Du','Se','Ch','Pa','Ju','Sh','Ya'];
 const pad = n => String(n).padStart(2, '0');
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmtDate = ts => { const d = new Date(ts); return `${DAYS[d.getDay()]}, ${d.getDate()}-${MONTHS[d.getMonth()]}`; };
+const fmtDate = ts => { const d = new Date(ts); return `${dayName(d.getDay())}, ${dm(d.getDate(), d.getMonth())}`; };
 const fmtTime = ts => { const d = new Date(ts); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const mondayOf = ts => { const d = new Date(ts); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; };
@@ -236,6 +289,7 @@ const state = {
   allGames: false,     // admin Yozilganlar: hammasini ko'rsatish
   adminView: null,     // admin menyusi: null | games | players | stats | admins
   newAdmin: { uid: '', name: '' },
+  langOpen: false,     // til tanlash menyusi
   week: 0
 };
 const isAdmin = () => !!state.me && (state.me.role === 'admin' || state.me.role === 'owner');
@@ -249,7 +303,7 @@ const freeOf = g => Math.max(0, g.capacity - g.used);
 
 /* ---------- Server bilan aloqa ---------- */
 async function api(path, body) {
-  if (!API_BASE) throw new Error('Server manzili sozlanmagan');
+  if (!API_BASE) throw new Error(t('Server manzili sozlanmagan'));
   const opts = { headers: {} };
   if (INIT) opts.headers['X-Init-Data'] = INIT;
   if (body !== undefined) {
@@ -259,10 +313,10 @@ async function api(path, body) {
   }
   let r, j = null;
   try { r = await fetch(API_BASE + path, opts); }
-  catch (e) { throw new Error("Server bilan aloqa yo'q. Internetni tekshiring."); }
+  catch (e) { throw new Error(t("Server bilan aloqa yo'q. Internetni tekshiring.")); }
   try { j = await r.json(); } catch (e) {}
   if (!r.ok || !j || j.ok === false) {
-    const err = new Error((j && j.error) || 'Xatolik yuz berdi');
+    const err = new Error(j && j.error ? srvErr(j.error) : t('Xatolik yuz berdi'));
     err.status = r.status;
     throw err;
   }
@@ -294,7 +348,7 @@ async function act(path, body, okMsg) {
     if (okMsg) toast(okMsg);
     return true;
   } catch (e) {
-    toast(e.message || 'Xatolik');
+    toast(e.message || t('Xatolik'));
     return false;
   } finally { state.busy = false; }
 }
@@ -306,34 +360,41 @@ const $nav = document.getElementById('nav');
 /* Liga logotipi: kanalning rasmiy logosi */
 const LOGO = `<img class="logo" alt="Riga Street Power League" src="data:image/webp;base64,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">`;
 const avatarHtml = () => `<div class="avatar">${MY_PHOTO ? `<img src="${esc(MY_PHOTO)}">` : (MY_NAME ? esc(MY_NAME.charAt(0).toUpperCase()) : '👤')}</div>`;
+const GLOBE = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M2.8 12h18.4"/><path d="M12 2.8c2.6 2.5 4 5.7 4 9.2s-1.4 6.7-4 9.2c-2.6-2.5-4-5.7-4-9.2s1.4-6.7 4-9.2z"/></svg>`;
+function langHtml() {
+  const cur = LANGS.find(l => l[0] === LANG) || LANGS[0];
+  const menu = state.langOpen ? `<div class="langmenu" role="menu">${LANGS.map(l => `<button class="langopt ${l[0] === LANG ? 'on' : ''}" data-a="setlang" data-id="${l[0]}" role="menuitem">
+      <span class="lcode">${l[2]}</span><span class="lname">${l[1]}</span><span class="lchk">${l[0] === LANG ? '✓' : ''}</span></button>`).join('')}</div>` : '';
+  return `<div class="langbox"><button class="langbtn ${state.langOpen ? 'on' : ''}" data-a="lang" aria-label="Language" aria-expanded="${state.langOpen}">${GLOBE}<span>${cur[2]}</span></button>${menu}</div>`;
+}
 function topHtml() {
-  return `<div class="top">${LOGO}<div class="grow"><div class="league">Riga Street Power Liga</div>${nick() ? `<div class="sub">${esc(nick())}</div>` : ''}</div></div>`;
+  return `<div class="top">${LOGO}<div class="grow"><div class="league">${t('Riga Street Power Liga')}</div>${nick() ? `<div class="sub">${esc(nick())}</div>` : ''}</div>${langHtml()}</div>`;
 }
 function progress(g) {
   // Oddiy o'yinchiga umumiy son va boshqalar ko'rsatilmaydi, faqat bo'sh joy
-  if (!isAdmin()) return `<div class="barrow" style="margin:10px 0 4px"><span>${freeOf(g) > 0 ? freeOf(g) + ` ta bo'sh joy` : `Joy qolmagan (navbatga yozilasiz)`}</span></div>`;
+  if (!isAdmin()) return `<div class="barrow" style="margin:10px 0 4px"><span>${freeOf(g) > 0 ? t("{n} ta bo'sh joy", { n: freeOf(g) }) : t('Joy qolmagan (navbatga yozilasiz)')}</span></div>`;
   const pct = Math.min(100, g.used / g.capacity * 100);
   return `<div class="bar"><i style="width:${pct}%"></i></div>
-    <div class="barrow"><span>${g.used}/${g.capacity} o'yinchi</span><span>${g.waiting ? g.waiting + ' kishi navbatda' : freeOf(g) + ` ta bo'sh joy`}</span></div>`;
+    <div class="barrow"><span>${t("{a}/{b} o'yinchi", { a: g.used, b: g.capacity })}</span><span>${g.waiting ? t('{n} kishi navbatda', { n: g.waiting }) : t("{n} ta bo'sh joy", { n: freeOf(g) })}</span></div>`;
 }
 function placeHtml(g) {
-  const t = g.place ? esc(g.place) : `Joy keyin e'lon qilinadi`;
-  return g.place && g.mapUrl ? `<span class="maplink" data-a="map" data-id="${g.id}">${t}</span>` : t;
+  const pl = g.place ? esc(g.place) : t("Joy keyin e'lon qilinadi");
+  return g.place && g.mapUrl ? `<span class="maplink" data-a="map" data-id="${g.id}">${pl}</span>` : pl;
 }
 const metaHtml = g => `<div class="meta"><span>📅 ${fmtDate(g.ts)}</span><span>🕗 ${fmtTime(g.ts)}</span><span>📍 ${placeHtml(g)}</span></div>`;
 function actionBtn(g) {
   if (isAdmin()) return '';   // adminlar o'yinga yozilmaydi, faqat boshqaradi
-  if (g.ts <= Date.now()) return `<button class="btn ghost" disabled>O'yin o'tgan</button>`;
+  if (g.ts <= Date.now()) return `<button class="btn ghost" disabled>${t("O'yin o'tgan")}</button>`;
   return isReg(g)
-    ? `<button class="btn out" data-a="cancel" data-id="${g.id}">Ro'yxatdan chiqish</button>`
-    : `<button class="btn" data-a="reg" data-id="${g.id}">Ro'yxatdan o'tish</button>`;
+    ? `<button class="btn out" data-a="cancel" data-id="${g.id}">${t("Ro'yxatdan chiqish")}</button>`
+    : `<button class="btn" data-a="reg" data-id="${g.id}">${t("Ro'yxatdan o'tish")}</button>`;
 }
 function badge(g) {
-  if (g.ts <= Date.now()) return `<span class="tag full">O'tgan</span>`;
+  if (g.ts <= Date.now()) return `<span class="tag full">${t("O'tgan")}</span>`;
   const s = statusOf(g);
-  if (s === 'ok') return `<span class="tag ok">Yozildingiz</span>`;
-  if (s === 'wait') return `<span class="tag wait">Navbatda</span>`;
-  return freeOf(g) === 0 ? `<span class="tag full">To'lgan</span>` : '';
+  if (s === 'ok') return `<span class="tag ok">${t("Yozildingiz")}</span>`;
+  if (s === 'wait') return `<span class="tag wait">${t("Navbatda")}</span>`;
+  return freeOf(g) === 0 ? `<span class="tag full">${t("To'lgan")}</span>` : '';
 }
 
 /* ---------- Hafta va kalendar ---------- */
@@ -344,17 +405,18 @@ function weekGames() {
 }
 function weekNav() {
   const s = weekStart(), e = new Date(s); e.setDate(e.getDate() + 6);
-  const range = s.getMonth() === e.getMonth()
-    ? `${s.getDate()}–${e.getDate()}-${MONTHS[e.getMonth()]}`
-    : `${s.getDate()}-${MONTHS[s.getMonth()]} – ${e.getDate()}-${MONTHS[e.getMonth()]}`;
-  const name = state.week === 0 ? 'Shu hafta' : state.week === 1 ? 'Keyingi hafta' : `${state.week} hafta keyin`;
+  const sm = s.getMonth(), em = e.getMonth();
+  const range = sm === em
+    ? (LANG === 'en' ? `${MONTHS_L.en[sm]} ${s.getDate()}–${e.getDate()}` : `${s.getDate()}–${dm(e.getDate(), em)}`)
+    : `${dm(s.getDate(), sm)} – ${dm(e.getDate(), em)}`;
+  const name = state.week === 0 ? t('Shu hafta') : state.week === 1 ? t('Keyingi hafta') : t('{n} hafta keyin', { n: state.week });
   return `<div class="cal-h"><button data-a="wk" data-id="-1" ${state.week <= 0 ? 'disabled' : ''}>‹</button>
     <div style="text-align:center"><b>${name}</b><div class="g-sub" style="margin:2px 0 0">${range}</div></div>
     <button data-a="wk" data-id="1" ${state.week >= MAX_WEEKS ? 'disabled' : ''}>›</button></div>`;
 }
 function calendarHtml() {
   const s = weekStart(), now = new Date(), gs = weekGames(), adm = isAdmin();
-  let cells = WD.map(w => `<div class="cal-w">${w}</div>`).join('');
+  let cells = weekdays().map(w => `<div class="cal-w">${w}</div>`).join('');
   for (let i = 0; i < 7; i++) {
     const d = new Date(s); d.setDate(d.getDate() + i);
     const g = gs.find(x => new Date(x.ts).toDateString() === d.toDateString());
@@ -365,11 +427,11 @@ function calendarHtml() {
     else if (adm && notPast) cells += `<div class="${cls} add" data-a="newgame" data-id="${ymd(d)}">${d.getDate()}</div>`;
     else cells += `<div class="${cls}">${d.getDate()}</div>`;
   }
-  return `<h3>Kalendar</h3><div class="card">
+  return `<h3>${t("Kalendar")}</h3><div class="card">
     ${weekNav()}
     <div class="cal-g">${cells}</div>
-    <div class="legend"><span><i style="background:#52222f"></i>O'yin kuni</span><span><i style="background:#14532d"></i>Siz yozilgansiz</span><span><i style="border:1px solid var(--blue)"></i>Bugun</span></div>
-    ${adm ? `<div class="hint">Admin: bo'sh kunni bossangiz, shu kunga yangi o'yin qo'shiladi.</div>` : ''}
+    <div class="legend"><span><i style="background:#52222f"></i>${t("O'yin kuni")}</span><span><i style="background:#14532d"></i>${t("Siz yozilgansiz")}</span><span><i style="border:1px solid var(--blue)"></i>${t("Bugun")}</span></div>
+    ${adm ? `<div class="hint">${t("Admin: bo'sh kunni bossangiz, shu kunga yangi o'yin qo'shiladi.")}</div>` : ''}
   </div>`;
 }
 
@@ -377,57 +439,57 @@ function calendarHtml() {
 function viewBoot() {
   if (state.error) {
     return topHtml() + `<div class="empty"><div class="big">📡</div>${esc(state.error)}<br><br>
-      <button class="btn" data-a="retry">Qayta urinish</button></div>`;
+      <button class="btn" data-a="retry">${t("Qayta urinish")}</button></div>`;
   }
-  return topHtml() + `<div class="empty"><div class="big">⚽</div>Yuklanmoqda…</div>`;
+  return topHtml() + `<div class="empty"><div class="big">⚽</div>${t("Yuklanmoqda…")}</div>`;
 }
 
 /* Asosiy sahifa: keyingi o'yin + o'yin sanalari + kalendar */
 function viewGames() {
-  const note = INIT ? '' : `<div class="note">Ro'yxatdan o'tish uchun bu sahifani Telegramdagi bot orqali oching.</div>`;
+  const note = INIT ? '' : `<div class="note">${t("Ro'yxatdan o'tish uchun bu sahifani Telegramdagi bot orqali oching.")}</div>`;
   const list = upcoming();
   if (!list.length) {
-    return topHtml() + note + `<div class="empty"><div class="big">📅</div>Hozircha rejalashtirilgan o'yin yo'q.<br>Yangi o'yin e'lon qilinishini kuting.</div>` + calendarHtml();
+    return topHtml() + note + `<div class="empty"><div class="big">📅</div>${t("Hozircha rejalashtirilgan o'yin yo'q.")}<br>${t("Yangi o'yin e'lon qilinishini kuting.")}</div>` + calendarHtml();
   }
   const next = list[0];
   const hero = `<div class="card hero">
-    <div class="label">Keyingi o'yin</div>
-    <div class="count" id="cd"><div><b>--</b><small>kun</small></div><div><b>--</b><small>soat</small></div><div><b>--</b><small>daqiqa</small></div><div><b>--</b><small>soniya</small></div></div>
-    <div class="title">${esc(next.title)}</div>
+    <div class="label">${t("Keyingi o'yin")}</div>
+    <div class="count" id="cd"><div><b>--</b><small>${t("kun")}</small></div><div><b>--</b><small>${t("soat")}</small></div><div><b>--</b><small>${t("daqiqa")}</small></div><div><b>--</b><small>${t("soniya")}</small></div></div>
+    <div class="title">${esc(gTitle(next))}</div>
     ${metaHtml(next)}
     ${progress(next)}
     ${actionBtn(next)}
-    <button class="btn ghost" data-a="open" data-id="${next.id}">Ro'yxatni ko'rish</button>
+    <button class="btn ghost" data-a="open" data-id="${next.id}">${t("Ro'yxatni ko'rish")}</button>
   </div>`;
   return topHtml() + note + hero + calendarHtml();
 }
 
 /* O'yinchi qatori (telefon va email faqat adminga) */
 function playerRow(p, i, adm) {
-  const wait = p.waiting ? '<span class="tag wait">Navbatda</span>' : '';
-  const x = adm ? `<button class="xbtn" data-a="delreg" data-id="${p.id}" aria-label="O'chirish">✖</button>` : '';
+  const wait = p.waiting ? `<span class="tag wait">${t("Navbatda")}</span>` : '';
+  const x = adm ? `<button class="xbtn" data-a="delreg" data-id="${p.id}" aria-label="${t("O'chirish")}">✖</button>` : '';
   const contact = adm ? `<div class="contact">📞 ${esc(p.phone || '')}${p.email ? ' · ✉️ ' + esc(p.email) : ''}${p.username ? ' · @' + esc(p.username) : ''}</div>` : '';
   if (p.kind === 'team') {
     return `<div class="player"><div class="num">${i + 1}</div><div class="pav">👥</div>
-      <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)} · ${p.members.length} kishi${p.mine ? ' (siz)' : ''}</div>
-      <div class="g-sub">⭐ Kapitan: ${esc(p.members[p.captain] || '—')}</div>
+      <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)} · ${t('{n} kishi', { n: p.members.length })}${p.mine ? ' ' + t('(siz)') : ''}</div>
+      <div class="g-sub">⭐ ${t('Kapitan: {name}', { name: esc(p.members[p.captain] || '—') })}</div>
       <div class="g-sub">${esc(p.members.join(', '))}</div>${contact}</div>${wait}${x}</div>`;
   }
   return `<div class="player"><div class="num">${i + 1}</div><div class="pav">${esc(p.name.charAt(0).toUpperCase())}</div>
-    <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)}${p.mine ? ' (siz)' : ''}</div>
-    <div class="g-sub">Yakka o'yinchi</div>${contact}</div>${wait}${x}</div>`;
+    <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)}${p.mine ? ' ' + t('(siz)') : ''}</div>
+    <div class="g-sub">${t("Yakka o'yinchi")}</div>${contact}</div>${wait}${x}</div>`;
 }
 
 /* Bitta o'yin statistikasi (admin uchun) */
 function gameTiles(g) {
   const n = k => g.players.filter(p => p.kind === k).length;
   return `<div class="stats3" style="margin-top:12px">
-    <div class="stat"><b>${g.used}/${g.capacity}</b><small>O'yinchilar</small></div>
-    <div class="stat"><b>${freeOf(g)}</b><small>Bo'sh joy</small></div>
-    <div class="stat"><b>${g.waiting}</b><small>Navbatda</small></div>
-    <div class="stat"><b>${n('team')}</b><small>Jamoalar</small></div>
-    <div class="stat"><b>${n('solo')}</b><small>Yakkalar</small></div>
-    <div class="stat"><b>${g.players.length}</b><small>Yozuvlar</small></div></div>`;
+    <div class="stat"><b>${g.used}/${g.capacity}</b><small>${t("O'yinchilar")}</small></div>
+    <div class="stat"><b>${freeOf(g)}</b><small>${t("Bo'sh joy")}</small></div>
+    <div class="stat"><b>${g.waiting}</b><small>${t("Navbatda")}</small></div>
+    <div class="stat"><b>${n('team')}</b><small>${t("Jamoalar")}</small></div>
+    <div class="stat"><b>${n('solo')}</b><small>${t("Yakkalar")}</small></div>
+    <div class="stat"><b>${g.players.length}</b><small>${t("Yozuvlar")}</small></div></div>`;
 }
 
 /* O'yin ichi: ma'lumot + ro'yxat */
@@ -440,17 +502,17 @@ function viewDetail() {
   const teams = g.players.filter(p => p.kind === 'team'), solos = g.players.filter(p => p.kind === 'solo');
   const grp = (title, arr) => arr.length ? `<h3>${title} (${arr.length})</h3><div class="card">${arr.map((p, i) => playerRow(p, i, true)).join('')}</div>` : '';
   const body = adm
-    ? gameTiles(g) + (g.players.length ? grp('👥 Jamoalar', teams) + grp(`🙋 Yakka o'yinchilar`, solos)
-        : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.</div>`)
-    : `<h3>Mening yozuvim</h3><div class="card">${mineP ? whoHtml(mineP) : `<div class="g-sub">Siz hali bu o'yinga yozilmagansiz.</div>`}</div>`;
+    ? gameTiles(g) + (g.players.length ? grp('👥 ' + t('Jamoalar'), teams) + grp('🙋 ' + t("Yakka o'yinchilar"), solos)
+        : `<div class="empty"><div class="big">🙌</div>${t("Hali hech kim yozilmagan.")}</div>`)
+    : `<h3>${t("Mening yozuvim")}</h3><div class="card">${mineP ? whoHtml(mineP) : `<div class="g-sub">${t("Siz hali bu o'yinga yozilmagansiz.")}</div>`}</div>`;
   const ctrl = adm ? `<div class="btnrow">
-      <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ Tahrirlash</button>
-      <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑 O'chirish</button></div>` : '';
+      <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ ${t("Tahrirlash")}</button>
+      <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑 ${t("O'chirish")}</button></div>` : '';
   const top = adm
     ? `<div class="g-title" style="font-size:19px;margin:2px 2px 4px">${fmtDate(g.ts)}, ${fmtTime(g.ts)}</div><div class="g-sub" style="margin:0 2px 4px">📍 ${placeHtml(g)}</div>`
-    : `<div class="card hero"><div class="label">O'yin</div><div class="title">${esc(g.title)}</div>
+    : `<div class="card hero"><div class="label">${t("O'yin")}</div><div class="title">${esc(gTitle(g))}</div>
       ${metaHtml(g)}${progress(g)}${actionBtn(g)}${ctrl}</div>`;
-  return `<button class="back" data-a="back">← Orqaga</button>${top}${body}`;
+  return `<button class="back" data-a="back">${t("← Orqaga")}</button>${top}${body}`;
 }
 
 /* Ro'yxatdan o'tish: avval jamoa/yakka tanlanadi, keyin forma */
@@ -462,36 +524,36 @@ function viewForm() {
   let fields = '';
   if (f.type === 'solo') {
     fields = `
-      <div class="field-l">Ism</div>
-      <input type="text" data-f="name" maxlength="40" placeholder="Ismingiz" value="${esc(f.name)}">
-      <div class="field-l">Telefon raqam</div>
+      <div class="field-l">${t("Ism")}</div>
+      <input type="text" data-f="name" maxlength="40" placeholder="${t('Ismingiz')}" value="${esc(f.name)}">
+      <div class="field-l">${t("Telefon raqam")}</div>
       <input type="tel" data-f="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">
       <div class="field-l">Email</div>
       <input type="email" data-f="email" maxlength="80" placeholder="email@example.com" value="${esc(f.email)}">`;
   } else if (f.type === 'team') {
     const rows = f.members.map((m, i) => `<div class="mrow">
-      <input type="text" data-f="m${i}" maxlength="40" placeholder="${i + 1}-o'yinchi ismi" value="${esc(m)}">
-      <button class="capbtn ${f.captain === i ? 'on' : ''}" data-a="cap" data-id="${i}" title="Kapitan">⭐</button></div>`).join('');
+      <input type="text" data-f="m${i}" maxlength="40" placeholder="${t("{n}-o'yinchi ismi", { n: i + 1 })}" value="${esc(m)}">
+      <button class="capbtn ${f.captain === i ? 'on' : ''}" data-a="cap" data-id="${i}" title="${t('Kapitan')}">⭐</button></div>`).join('');
     fields = `
-      <div class="field-l">Jamoa nomi (ixtiyoriy)</div>
-      <input type="text" data-f="teamName" maxlength="40" placeholder="Masalan: Burgutlar" value="${esc(f.teamName)}">
-      <div class="field-l">${TEAM_SIZE} ta o'yinchi ismi</div>
+      <div class="field-l">${t("Jamoa nomi (ixtiyoriy)")}</div>
+      <input type="text" data-f="teamName" maxlength="40" placeholder="${t('Masalan: Burgutlar')}" value="${esc(f.teamName)}">
+      <div class="field-l">${t("{n} ta o'yinchi ismi", { n: TEAM_SIZE })}</div>
       ${rows}
-      <div class="hint">⭐ Kapitanni belgilang. Kapitan jamoa uchun javob beradi: kim keldi, kim kelmadi.</div>
-      <div class="field-l">Kapitan: ${esc((f.members[f.captain] || '').trim() || '—')}. Telefon raqami</div>
+      <div class="hint">${t("⭐ Kapitanni belgilang. Kapitan jamoa uchun javob beradi: kim keldi, kim kelmadi.")}</div>
+      <div class="field-l">${t('Kapitan: {name}. Telefon raqami', { name: esc((f.members[f.captain] || '').trim() || '—') })}</div>
       <input type="tel" data-f="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">`;
   }
-  return `<button class="back" data-a="fback">← Orqaga</button>
-    <div class="card hero"><div class="label">Ro'yxatdan o'tish</div><div class="title">${esc(g.title)}</div>${metaHtml(g)}</div>
+  return `<button class="back" data-a="fback">${t("← Orqaga")}</button>
+    <div class="card hero"><div class="label">${t("Ro'yxatdan o'tish")}</div><div class="title">${esc(gTitle(g))}</div>${metaHtml(g)}</div>
     <div class="card">
-      <div class="field-l" style="margin-top:0">Sizda jamoa bormi yoki yakka o'zingizmisiz?</div>
+      <div class="field-l" style="margin-top:0">${t("Sizda jamoa bormi yoki yakka o'zingizmisiz?")}</div>
       <div class="opts">
-        <button class="opt ${f.type === 'team' ? 'on' : ''}" data-a="type" data-id="team"><span class="ic">👥</span><b>Jamoam bor</b><small>${TEAM_SIZE} kishilik jamoa</small></button>
-        <button class="opt ${f.type === 'solo' ? 'on' : ''}" data-a="type" data-id="solo"><span class="ic">🙋</span><b>Yakka o'zim</b><small>Jamoasiz yozilaman</small></button>
+        <button class="opt ${f.type === 'team' ? 'on' : ''}" data-a="type" data-id="team"><span class="ic">👥</span><b>${t("Jamoam bor")}</b><small>${t('{n} kishilik jamoa', { n: TEAM_SIZE })}</small></button>
+        <button class="opt ${f.type === 'solo' ? 'on' : ''}" data-a="type" data-id="solo"><span class="ic">🙋</span><b>${t("Yakka o'zim")}</b><small>${t("Jamoasiz yozilaman")}</small></button>
       </div>
       ${fields}
-      ${over ? `<div class="note" style="margin-top:12px">Hozir joy yetarli emas. Siz navbat ro'yxatiga yozilasiz.</div>` : ''}
-      ${f.type ? `<button class="btn" data-a="confirm">Tasdiqlash</button>` : ''}
+      ${over ? `<div class="note" style="margin-top:12px">${t("Hozir joy yetarli emas. Siz navbat ro'yxatiga yozilasiz.")}</div>` : ''}
+      ${f.type ? `<button class="btn" data-a="confirm">${t("Tasdiqlash")}</button>` : ''}
     </div>`;
 }
 
@@ -501,18 +563,18 @@ function viewMineAdmin() {
   const up = upcoming(), many = up.length > 10;
   const list = many && !state.allGames ? up.slice(0, 3) : up;
   const cards = list.map(g => {
-    const d = new Date(g.ts), t = gameCount(g, 'team'), so = gameCount(g, 'solo');
+    const d = new Date(g.ts), tc = gameCount(g, 'team'), so = gameCount(g, 'solo');
     return `<div class="card link" data-a="open" data-id="${g.id}"><div class="row">
-      <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
-      <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
-        <div class="g-sub">📍 ${g.place ? esc(g.place) : `Joy kiritilmagan`}</div>
-        <div class="g-sub">${g.used}/${g.capacity} o'yinchi · ${t} jamoa · ${so} yakka${g.waiting ? ` · ${g.waiting} navbatda` : ''}</div></div>
+      <div class="datebox"><b>${d.getDate()}</b><small>${monShort(d.getMonth())}</small></div>
+      <div class="grow"><div class="g-title">${dayName(d.getDay())}, ${fmtTime(g.ts)}</div>
+        <div class="g-sub">📍 ${g.place ? esc(g.place) : t('Joy kiritilmagan')}</div>
+        <div class="g-sub">${t("{a}/{b} o'yinchi", { a: g.used, b: g.capacity })} · ${t('{n} jamoa', { n: tc })} · ${t('{n} yakka', { n: so })}${g.waiting ? ` · ${t('{n} kishi navbatda', { n: g.waiting })}` : ''}</div></div>
       <div class="chev">›</div></div></div>`;
   }).join('');
-  const toggle = many ? `<button class="btn ghost" data-a="allgames">${state.allGames ? 'Faqat eng yaqin 3 tasini ko\'rsatish' : `Hammasini ko'rish (${up.length})`}</button>` : '';
-  const sub = many && !state.allGames ? `<div class="g-sub" style="margin:-6px 2px 12px">Eng yaqin 3 ta o'yin</div>` : '';
-  return topHtml() + `<h3 style="margin-top:4px">Yozilganlar</h3>${sub}` +
-    (cards || `<div class="empty"><div class="big">📅</div>Hali o'yinlar yo'q.</div>`) + toggle;
+  const toggle = many ? `<button class="btn ghost" data-a="allgames">${state.allGames ? t("Faqat eng yaqin 3 tasini ko'rsatish") : t("Hammasini ko'rish ({n})", { n: up.length })}</button>` : '';
+  const sub = many && !state.allGames ? `<div class="g-sub" style="margin:-6px 2px 12px">${t("Eng yaqin 3 ta o'yin")}</div>` : '';
+  return topHtml() + `<h3 style="margin-top:4px">${t('Yozilganlar')}</h3>${sub}` +
+    (cards || `<div class="empty"><div class="big">📅</div>${t("Hali o'yinlar yo'q.")}</div>`) + toggle;
 }
 function viewMine() {
   if (isAdmin()) return viewMineAdmin();
@@ -520,86 +582,86 @@ function viewMine() {
   const body = mine.length ? mine.map(g => {
     const d = new Date(g.ts), p = myReg(g);
     const who = p.kind === 'team'
-      ? `<div class="g-sub">👥 ${esc(p.name)} · ${p.members.length} kishi</div><div class="g-sub">⭐ Kapitan: ${esc(p.members[p.captain] || '—')}</div>`
-      : `<div class="g-sub">🙋 ${esc(p.name)} · yakka</div>`;
+      ? `<div class="g-sub">👥 ${esc(p.name)} · ${t('{n} kishi', { n: p.members.length })}</div><div class="g-sub">⭐ ${t('Kapitan: {name}', { name: esc(p.members[p.captain] || '—') })}</div>`
+      : `<div class="g-sub">🙋 ${esc(p.name)} · ${t('yakka')}</div>`;
     return `<div class="card"><div class="row">
-      <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
-      <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
-        <div class="g-sub">📍 ${g.place ? esc(g.place) : `Joy keyin e'lon qilinadi`}</div>${who}</div>
+      <div class="datebox"><b>${d.getDate()}</b><small>${monShort(d.getMonth())}</small></div>
+      <div class="grow"><div class="g-title">${dayName(d.getDay())}, ${fmtTime(g.ts)}</div>
+        <div class="g-sub">📍 ${g.place ? esc(g.place) : t("Joy keyin e'lon qilinadi")}</div>${who}</div>
       ${badge(g)}</div>
       <div class="btnrow">
-        <button class="btn ghost sm" data-a="open" data-id="${g.id}">Ro'yxat</button>
-        <button class="btn out sm" data-a="cancel" data-id="${g.id}">Bekor qilish</button>
+        <button class="btn ghost sm" data-a="open" data-id="${g.id}">${t("Ro'yxatni ko'rish")}</button>
+        <button class="btn out sm" data-a="cancel" data-id="${g.id}">${t("Bekor qilish")}</button>
       </div></div>`;
-  }).join('') : `<div class="empty"><div class="big">📝</div>Siz hali hech qaysi o'yinga yozilmagansiz.</div>`;
-  return topHtml() + `<h3 style="margin-top:4px">Yozilgan o'yinlar</h3>` + body;
+  }).join('') : `<div class="empty"><div class="big">📝</div>${t("Siz hali hech qaysi o'yinga yozilmagansiz.")}</div>`;
+  return topHtml() + `<h3 style="margin-top:4px">${t("Yozilgan o'yinlar")}</h3>` + body;
 }
 
 function viewProfile() {
   if (state.profView === 'edit') return viewProfileEdit();
   const sub = adminSub(); if (sub) return sub;
-  const role = isOwner() ? '<span class="tag ok">Asoschi</span>' : (isAdmin() ? '<span class="tag ok">Admin</span>' : '');
+  const role = isOwner() ? `<span class="tag ok">${t('Asoschi')}</span>` : (isAdmin() ? `<span class="tag ok">${t('Admin')}</span>` : '');
   // Adminlarga "yozilgan o'yinlar" ko'rsatilmaydi, faqat oddiy o'yinchilarga
-  const stats = isAdmin() ? '' : `<div class="stats" style="margin-bottom:16px"><div class="stat"><b>${state.games.filter(isReg).length}</b><small>Yozilgan o'yinlar</small></div>
-    <div class="stat"><b>${upcoming().filter(isReg).length}</b><small>Kutilayotgan</small></div></div>`;
-  const rows = li('✏️', `Mening ma'lumotlarim`, profile.name || profile.phone || profile.email ? [profile.name, profile.phone].filter(Boolean).join(' · ') : `Ism, telefon, email`, 'pedit') +
-    (tu ? li('🆔', 'Telegram ID', `${tu.id} · nusxalash uchun bosing`, 'copyid') : '');
-  return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(shownName() || 'Foydalanuvchi')}</div>
-    <div class="g-sub">${tu && tu.username ? '@' + esc(tu.username) : `username yo'q`}</div>
+  const stats = isAdmin() ? '' : `<div class="stats" style="margin-bottom:16px"><div class="stat"><b>${state.games.filter(isReg).length}</b><small>${t("Yozilgan o'yinlar")}</small></div>
+    <div class="stat"><b>${upcoming().filter(isReg).length}</b><small>${t("Kutilayotgan")}</small></div></div>`;
+  const rows = li('✏️', t("Mening ma'lumotlarim"), profile.name || profile.phone || profile.email ? [profile.name, profile.phone].filter(Boolean).join(' · ') : t('Ism, telefon, email'), 'pedit') +
+    (tu ? li('🆔', 'Telegram ID', t('{id} · nusxalash uchun bosing', { id: tu.id }), 'copyid') : '');
+  return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(shownName() || t('Foydalanuvchi'))}</div>
+    <div class="g-sub">${tu && tu.username ? '@' + esc(tu.username) : t("username yo'q")}</div>
     ${tu ? `<div class="g-sub">Telegram ID: <b>${tu.id}</b></div>` : ''}</div>${role}</div></div>
-    ${stats}<div class="sec-l">Sozlamalar</div><div class="menu">${rows}</div>${isAdmin() ? adminMenu() : myGamesHtml()}`;
+    ${stats}<div class="sec-l">${t('Sozlamalar')}</div><div class="menu">${rows}</div>${isAdmin() ? adminMenu() : myGamesHtml()}`;
 }
 
 /* Profilda: men yozilgan barcha o'yinlar (yangisi tepada) */
 function myGamesHtml() {
   const h = loadHist().sort((a, b) => b.ts - a.ts);
-  const head = `<div class="sec-h" style="margin-top:6px"><div class="sec-l" style="margin:0">Yozilgan o'yinlarim</div><span class="g-sub" style="margin:0">${h.length} ta</span></div>`;
-  if (!h.length) return head + `<div class="card"><div class="g-sub">Hali hech qaysi o'yinga yozilmagansiz.</div></div>`;
+  const head = `<div class="sec-h" style="margin-top:6px"><div class="sec-l" style="margin:0">${t("Yozilgan o'yinlarim")}</div><span class="g-sub" style="margin:0">${t('{n} ta', { n: h.length })}</span></div>`;
+  if (!h.length) return head + `<div class="card"><div class="g-sub">${t("Hali hech qaysi o'yinga yozilmagansiz.")}</div></div>`;
   return head + `<div class="menu">` + h.map(x => {
     const d = new Date(x.ts), past = x.ts <= Date.now();
-    const tag = past ? `<span class="tag full">O'tgan</span>` : (x.waiting ? `<span class="tag wait">Navbatda</span>` : `<span class="tag ok">Yozildingiz</span>`);
-    return `<div class="li" data-a="pgame" data-id="${x.id}"><div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
-      <div class="grow"><div class="li-t">${DAYS[d.getDay()]}, ${fmtTime(x.ts)}</div><div class="li-s">📍 ${x.place ? esc(x.place) : `Joy e'lon qilinmagan`}</div></div>${tag}<div class="chev">›</div></div>`;
+    const tag = past ? `<span class="tag full">${t("O'tgan")}</span>` : (x.waiting ? `<span class="tag wait">${t("Navbatda")}</span>` : `<span class="tag ok">${t("Yozildingiz")}</span>`);
+    return `<div class="li" data-a="pgame" data-id="${x.id}"><div class="datebox"><b>${d.getDate()}</b><small>${monShort(d.getMonth())}</small></div>
+      <div class="grow"><div class="li-t">${dayName(d.getDay())}, ${fmtTime(x.ts)}</div><div class="li-s">📍 ${x.place ? esc(x.place) : t("Joy e'lon qilinmagan")}</div></div>${tag}<div class="chev">›</div></div>`;
   }).join('') + `</div>`;
 }
 /* Mening yozuvim: jamoa/yakka, kapitan, o'yinchilar */
 function whoHtml(x) {
   return x.kind === 'team'
-    ? `<div class="g-title">👥 ${esc(x.name)}</div><div class="g-sub">⭐ Kapitan: ${esc(x.members[x.captain] || '—')}</div><div class="g-sub">${esc(x.members.join(', '))}</div>`
-    : `<div class="g-title">🙋 ${esc(x.name)}</div><div class="g-sub">Yakka o'yinchi</div>`;
+    ? `<div class="g-title">👥 ${esc(x.name)}</div><div class="g-sub">⭐ ${t('Kapitan: {name}', { name: esc(x.members[x.captain] || '—') })}</div><div class="g-sub">${esc(x.members.join(', '))}</div>`
+    : `<div class="g-title">🙋 ${esc(x.name)}</div><div class="g-sub">${t("Yakka o'yinchi")}</div>`;
 }
 /* Eski (serverda endi ko'rinmaydigan) o'yin tafsiloti: sana, vaqt, joy va mening yozuvim */
 function viewHistGame() {
   const x = loadHist().find(h => h.id === state.open);
   if (!x) { state.open = null; return viewProfile(); }
   const past = x.ts <= Date.now();
-  const tag = past ? `<span class="tag full">O'tgan</span>` : (x.waiting ? `<span class="tag wait">Navbatda</span>` : `<span class="tag ok">Yozildingiz</span>`);
+  const tag = past ? `<span class="tag full">${t("O'tgan")}</span>` : (x.waiting ? `<span class="tag wait">${t("Navbatda")}</span>` : `<span class="tag ok">${t("Yozildingiz")}</span>`);
   const who = whoHtml(x);
-  return `<button class="back" data-a="back">← Orqaga</button>
-    <div class="card hero"><div class="label">O'yin</div><div class="title">${esc(x.title || "Futbol o'yini")}</div>${metaHtml(x)}<div>${tag}</div></div>
-    <h3>Mening yozuvim</h3><div class="card">${who}</div>`;
+  return `<button class="back" data-a="back">${t("← Orqaga")}</button>
+    <div class="card hero"><div class="label">${t("O'yin")}</div><div class="title">${esc(gTitle(x))}</div>${metaHtml(x)}<div>${tag}</div></div>
+    <h3>${t("Mening yozuvim")}</h3><div class="card">${who}</div>`;
 }
 
 function viewProfileEdit() {
   const f = state.pform;
-  return `<button class="back" data-a="pback">← Orqaga</button>
-    <div class="card"><div class="g-title">Mening ma'lumotlarim</div>
-      <div class="hint">Bu ma'lumotlar ro'yxatdan o'tish formasida avtomatik to'ldiriladi. Ular shu qurilmada saqlanadi.</div>
-      <div class="field-l">Ism</div>
-      <input type="text" data-pf="name" maxlength="40" placeholder="${esc(MY_NAME || 'Ismingiz')}" value="${esc(f.name)}">
-      <div class="field-l">Telefon raqam</div>
+  return `<button class="back" data-a="pback">${t("← Orqaga")}</button>
+    <div class="card"><div class="g-title">${t("Mening ma'lumotlarim")}</div>
+      <div class="hint">${t("Bu ma'lumotlar ro'yxatdan o'tish formasida avtomatik to'ldiriladi. Ular shu qurilmada saqlanadi.")}</div>
+      <div class="field-l">${t("Ism")}</div>
+      <input type="text" data-pf="name" maxlength="40" placeholder="${esc(MY_NAME || t('Ismingiz'))}" value="${esc(f.name)}">
+      <div class="field-l">${t("Telefon raqam")}</div>
       <input type="tel" data-pf="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">
       <div class="field-l">Email</div>
       <input type="email" data-pf="email" maxlength="80" placeholder="email@example.com" value="${esc(f.email)}">
-      <button class="btn" data-a="psave">Saqlash</button>
-      <button class="btn ghost" data-a="pclear">Tozalash</button>
+      <button class="btn" data-a="psave">${t("Saqlash")}</button>
+      <button class="btn ghost" data-a="pclear">${t("Tozalash")}</button>
     </div>`;
 }
 
 /* Admin panel: menyu ro'yxati (har bir bo'lim alohida sahifa) */
 const li = (ic, t, s, a, id) => `<div class="li" data-a="${a}" data-id="${id || ''}"><div class="li-ic">${ic}</div>
   <div class="grow"><div class="li-t">${t}</div><div class="li-s">${s}</div></div><div class="chev">›</div></div>`;
-const admHead = t => `<button class="back" data-a="admback">← Orqaga</button><h3 style="margin-top:0">${t}</h3>`;
+const admHead = title => `<button class="back" data-a="admback">${t("← Orqaga")}</button><h3 style="margin-top:0">${title}</h3>`;
 const gameCount = (g, k) => g.players.filter(p => p.kind === k).length;
 
 /* Admin bo'limi profilning ichida: ichki sahifalar (null = menyu ko'rsatiladi) */
@@ -615,13 +677,13 @@ function adminSub() {
 function adminMenu() {
   const up = upcoming();
   const regs = up.reduce((a, g) => a + g.players.length, 0), people = up.reduce((a, g) => a + g.used, 0);
-  const g1 = li('➕', `Yangi o'yin qo'shish`, 'Sana, vaqt, joy va sig\'im', 'newgame') +
-    li('🗓', `O'yinlar`, up.length ? `${up.length} ta rejalashtirilgan` : `Hali o'yin yo'q`, 'adm', 'games') +
-    li('👥', `Ro'yxatdan o'tganlar`, regs ? `${regs} ta yozuv · ${people} o'yinchi` : 'Hali hech kim yozilmagan', 'adm', 'players') +
-    li('📊', 'Statistika', `Bo'sh joylar, jamoalar, navbat`, 'adm', 'stats');
-  const g2 = isOwner() ? `<div class="sec-l">Boshqaruv</div><div class="menu">` +
-    li('🛡', 'Adminlar', state.admins.length ? `${state.admins.length} ta admin` : `Faqat siz (asoschi)`, 'adm', 'admins') + `</div>` : '';
-  return `<div class="sec-l">Admin</div><div class="menu">${g1}</div>${g2}`;
+  const g1 = li('➕', t("Yangi o'yin qo'shish"), t("Sana, vaqt, joy va sig'im"), 'newgame') +
+    li('🗓', t("O'yinlar"), up.length ? t('{n} ta rejalashtirilgan', { n: up.length }) : t("Hali o'yin yo'q"), 'adm', 'games') +
+    li('👥', t("Ro'yxatdan o'tganlar"), regs ? t("{a} ta yozuv · {b} o'yinchi", { a: regs, b: people }) : t('Hali hech kim yozilmagan'), 'adm', 'players') +
+    li('📊', t('Statistika'), t("Bo'sh joylar, jamoalar, navbat"), 'adm', 'stats');
+  const g2 = isOwner() ? `<div class="sec-l">${t('Boshqaruv')}</div><div class="menu">` +
+    li('🛡', t('Adminlar'), state.admins.length ? t('{n} ta admin', { n: state.admins.length }) : t('Faqat siz (asoschi)'), 'adm', 'admins') + `</div>` : '';
+  return `<div class="sec-l">${t('Admin')}</div><div class="menu">${g1}</div>${g2}`;
 }
 
 function viewAdmGames() {
@@ -629,72 +691,72 @@ function viewAdmGames() {
   const list = up.length ? up.map(g => {
     const d = new Date(g.ts);
     return `<div class="card"><div class="row">
-      <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
-      <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
-        <div class="g-sub">📍 ${g.place ? esc(g.place) : 'Joy kiritilmagan'}</div>
-        <div class="g-sub">${g.used}/${g.capacity} o'yinchi · ${freeOf(g)} ta bo'sh joy</div></div></div>
+      <div class="datebox"><b>${d.getDate()}</b><small>${monShort(d.getMonth())}</small></div>
+      <div class="grow"><div class="g-title">${dayName(d.getDay())}, ${fmtTime(g.ts)}</div>
+        <div class="g-sub">📍 ${g.place ? esc(g.place) : t('Joy kiritilmagan')}</div>
+        <div class="g-sub">${t("{a}/{b} o'yinchi", { a: g.used, b: g.capacity })} · ${t("{n} ta bo'sh joy", { n: freeOf(g) })}</div></div></div>
       <div class="btnrow">
-        <button class="btn ghost sm" data-a="open" data-id="${g.id}">👥 Ro'yxat</button>
-        <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ Tahrirlash</button>
+        <button class="btn ghost sm" data-a="open" data-id="${g.id}">👥 ${t("Ro'yxat")}</button>
+        <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ ${t("Tahrirlash")}</button>
         <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑</button></div></div>`;
-  }).join('') : `<div class="empty"><div class="big">📅</div>Hali o'yin qo'shilmagan.</div>`;
-  return admHead(`O'yinlar`) + `<button class="btn" data-a="newgame" data-id="" style="margin:0 0 12px">+ Yangi o'yin</button>` + list;
+  }).join('') : `<div class="empty"><div class="big">📅</div>${t("Hali o'yin qo'shilmagan.")}</div>`;
+  return admHead(t("O'yinlar")) + `<button class="btn" data-a="newgame" data-id="" style="margin:0 0 12px">${t("+ Yangi o'yin")}</button>` + list;
 }
 
 function viewAdmPlayers() {
   const up = upcoming();
   const blocks = up.map(g => `<div class="sec-h"><h3 style="font-size:15px">${fmtDate(g.ts)}, ${fmtTime(g.ts)}</h3><span class="g-sub" style="margin:0">${g.used}/${g.capacity}</span></div>
-    <div class="card">${g.players.length ? g.players.map((p, i) => playerRow(p, i, true)).join('') : `<div class="g-sub">Hali hech kim yozilmagan.</div>`}</div>`).join('');
-  return admHead(`Ro'yxatdan o'tganlar`) + (blocks || `<div class="empty"><div class="big">📅</div>Hali o'yin qo'shilmagan.</div>`);
+    <div class="card">${g.players.length ? g.players.map((p, i) => playerRow(p, i, true)).join('') : `<div class="g-sub">${t("Hali hech kim yozilmagan.")}</div>`}</div>`).join('');
+  return admHead(t("Ro'yxatdan o'tganlar")) + (blocks || `<div class="empty"><div class="big">📅</div>${t("Hali o'yin qo'shilmagan.")}</div>`);
 }
 
 function viewAdmStats() {
   const up = upcoming();
   const sum = f => up.reduce((a, g) => a + f(g), 0);
   const tiles = `<div class="stats3">
-    <div class="stat"><b>${up.length}</b><small>O'yinlar</small></div>
-    <div class="stat"><b>${sum(g => g.used)}</b><small>O'yinchilar</small></div>
-    <div class="stat"><b>${sum(g => freeOf(g))}</b><small>Bo'sh joy</small></div>
-    <div class="stat"><b>${sum(g => gameCount(g, 'team'))}</b><small>Jamoalar</small></div>
-    <div class="stat"><b>${sum(g => gameCount(g, 'solo'))}</b><small>Yakkalar</small></div>
-    <div class="stat"><b>${sum(g => g.waiting)}</b><small>Navbatda</small></div></div>`;
+    <div class="stat"><b>${up.length}</b><small>${t("O'yinlar")}</small></div>
+    <div class="stat"><b>${sum(g => g.used)}</b><small>${t("O'yinchilar")}</small></div>
+    <div class="stat"><b>${sum(g => freeOf(g))}</b><small>${t("Bo'sh joy")}</small></div>
+    <div class="stat"><b>${sum(g => gameCount(g, 'team'))}</b><small>${t("Jamoalar")}</small></div>
+    <div class="stat"><b>${sum(g => gameCount(g, 'solo'))}</b><small>${t("Yakkalar")}</small></div>
+    <div class="stat"><b>${sum(g => g.waiting)}</b><small>${t("Navbatda")}</small></div></div>`;
   const per = up.map(g => `<div class="card"><div class="g-title">${fmtDate(g.ts)}, ${fmtTime(g.ts)}</div>${progress(g)}
-    <div class="g-sub">${gameCount(g, 'team')} jamoa · ${gameCount(g, 'solo')} yakka${g.waiting ? ` · ${g.waiting} navbatda` : ''}</div></div>`).join('');
-  return admHead('Statistika') + tiles + (per ? `<h3>Har bir o'yin</h3>${per}` : '');
+    <div class="g-sub">${t('{n} jamoa', { n: gameCount(g, 'team') })} · ${t('{n} yakka', { n: gameCount(g, 'solo') })}${g.waiting ? ` · ${t('{n} kishi navbatda', { n: g.waiting })}` : ''}</div></div>`).join('');
+  return admHead(t('Statistika')) + tiles + (per ? `<h3>${t("Har bir o'yin")}</h3>${per}` : '');
 }
 
 function viewAdmAdmins() {
-  return admHead('Adminlar') + `<div class="card">
-      ${state.admins.length ? state.admins.map(a => `<div class="adm-row"><div class="grow"><div class="g-title">${esc(a.name || 'Nomsiz')}</div><div class="g-sub">ID: ${a.uid}</div></div>
-        <button class="btn out sm" data-a="rmadmin" data-id="${a.uid}">O'chirish</button></div>`).join('') : `<div class="g-sub">Hozircha adminlar yo'q. Faqat siz (asoschi) borsiz.</div>`}</div>
-    <h3>Yangi admin qo'shish</h3><div class="card">
+  return admHead(t('Adminlar')) + `<div class="card">
+      ${state.admins.length ? state.admins.map(a => `<div class="adm-row"><div class="grow"><div class="g-title">${esc(a.name || t('Nomsiz'))}</div><div class="g-sub">ID: ${a.uid}</div></div>
+        <button class="btn out sm" data-a="rmadmin" data-id="${a.uid}">${t("O'chirish")}</button></div>`).join('') : `<div class="g-sub">${t("Hozircha adminlar yo'q. Faqat siz (asoschi) borsiz.")}</div>`}</div>
+    <h3>${t("Yangi admin qo'shish")}</h3><div class="card">
       <div class="field-l" style="margin-top:0">Telegram ID</div>
-      <input type="text" inputmode="numeric" data-na="uid" maxlength="15" placeholder="Masalan: 123456789" value="${esc(state.newAdmin.uid)}">
-      <div class="field-l">Ismi (ixtiyoriy)</div>
-      <input type="text" data-na="name" maxlength="60" placeholder="Masalan: Do'stim" value="${esc(state.newAdmin.name)}">
-      <div class="hint">Admin bo'ladigan odam Mini App'ni ochib, Profil sahifasidagi Telegram ID raqamini sizga yuborsin.</div>
-      <button class="btn" data-a="addadmin">Admin qo'shish</button></div>`;
+      <input type="text" inputmode="numeric" data-na="uid" maxlength="15" placeholder="${t('Masalan: 123456789')}" value="${esc(state.newAdmin.uid)}">
+      <div class="field-l">${t("Ismi (ixtiyoriy)")}</div>
+      <input type="text" data-na="name" maxlength="60" placeholder="${t("Masalan: Do'stim")}" value="${esc(state.newAdmin.name)}">
+      <div class="hint">${t("Admin bo'ladigan odam Mini App'ni ochib, Profil sahifasidagi Telegram ID raqamini sizga yuborsin.")}</div>
+      <button class="btn" data-a="addadmin">${t("Admin qo'shish")}</button></div>`;
 }
 
 /* Admin: o'yin qo'shish / tahrirlash formasi */
 function viewAdminForm() {
   const f = state.aform, editing = !!f.id;
-  return `<button class="back" data-a="aback">← Orqaga</button>
-    <div class="card"><div class="g-title">${editing ? `O'yinni tahrirlash` : `Yangi o'yin`}</div>
+  return `<button class="back" data-a="aback">${t("← Orqaga")}</button>
+    <div class="card"><div class="g-title">${editing ? t("O'yinni tahrirlash") : t("Yangi o'yin")}</div>
       <div class="row2">
-        <div><div class="field-l">Sana</div><input type="date" data-af="date" value="${esc(f.date)}"></div>
-        <div><div class="field-l">Boshlanish vaqti</div><input type="time" data-af="time" value="${esc(f.time)}"></div>
+        <div><div class="field-l">${t("Sana")}</div><input type="date" data-af="date" value="${esc(f.date)}"></div>
+        <div><div class="field-l">${t("Boshlanish vaqti")}</div><input type="time" data-af="time" value="${esc(f.time)}"></div>
       </div>
-      <div class="field-l">Joy (lokatsiya nomi)</div>
-      <input type="text" data-af="place" maxlength="120" placeholder="Masalan: Imanta stadioni" value="${esc(f.place)}">
-      <div class="field-l">Xarita havolasi (ixtiyoriy)</div>
+      <div class="field-l">${t("Joy (lokatsiya nomi)")}</div>
+      <input type="text" data-af="place" maxlength="120" placeholder="${t('Masalan: Imanta stadioni')}" value="${esc(f.place)}">
+      <div class="field-l">${t("Xarita havolasi (ixtiyoriy)")}</div>
       <input type="url" data-af="mapUrl" maxlength="300" placeholder="https://maps.google.com/..." value="${esc(f.mapUrl)}">
-      <div class="field-l">O'yinchilar soni (sig'im)</div>
+      <div class="field-l">${t("O'yinchilar soni (sig'im)")}</div>
       <input type="number" inputmode="numeric" min="1" max="200" data-af="capacity" value="${esc(f.capacity)}">
-      <div class="hint">${TEAM_SIZE} × jamoalar soni. 3 jamoa = ${TEAM_SIZE * 3}, 4 jamoa = ${TEAM_SIZE * 4}.</div>
-      <div class="field-l">Sarlavha (ixtiyoriy)</div>
-      <input type="text" data-af="title" maxlength="60" placeholder="Futbol o'yini" value="${esc(f.title)}">
-      <button class="btn" data-a="asave">${editing ? 'Saqlash' : `O'yinni qo'shish`}</button>
+      <div class="hint">${t('{n} × jamoalar soni. 3 jamoa = {a}, 4 jamoa = {b}.', { n: TEAM_SIZE, a: TEAM_SIZE * 3, b: TEAM_SIZE * 4 })}</div>
+      <div class="field-l">${t("Sarlavha (ixtiyoriy)")}</div>
+      <input type="text" data-af="title" maxlength="60" placeholder="${t("Futbol o'yini")}" value="${esc(f.title)}">
+      <button class="btn" data-a="asave">${editing ? t('Saqlash') : t("O'yinni qo'shish")}</button>
     </div>`;
 }
 
@@ -709,13 +771,13 @@ function render() {
   else if (state.tab === 'profile') html = state.open ? (byId(state.open) ? viewDetail() : viewHistGame()) : viewProfile();
   else html = viewProfile();
   $app.innerHTML = html;
-  const tabs = [['games', '⚽', 'Asosiy'], ['mine', '📝', 'Yozilganlar'], ['profile', '👤', 'Profil']];
-  $nav.innerHTML = tabs.map(t => `<button data-a="tab" data-id="${t[0]}" class="${state.tab === t[0] ? 'on' : ''}"><span>${t[1]}</span>${t[2]}</button>`).join('');
+  const tabs = [['games', '⚽', t('Asosiy')], ['mine', '📝', t('Yozilganlar')], ['profile', '👤', t('Profil')]];
+  $nav.innerHTML = tabs.map(x => `<button data-a="tab" data-id="${x[0]}" class="${state.tab === x[0] ? 'on' : ''}"><span>${x[1]}</span>${x[2]}</button>`).join('');
   tick();
 }
 
-function toast(t) {
-  const el = document.createElement('div'); el.className = 'toast'; el.textContent = t;
+function toast(m) {
+  const el = document.createElement('div'); el.className = 'toast'; el.textContent = m;
   document.body.appendChild(el); setTimeout(() => el.remove(), 2600);
 }
 const canConfirm = tg && tg.showConfirm && (!tg.isVersionAtLeast || tg.isVersionAtLeast('6.2'));
@@ -732,7 +794,7 @@ function tick() {
   const d = Math.floor(s / 86400); s %= 86400;
   const h = Math.floor(s / 3600); s %= 3600;
   const m = Math.floor(s / 60); s %= 60;
-  const v = [[d, 'kun'], [h, 'soat'], [m, 'daqiqa'], [s, 'soniya']];
+  const v = [[d, t('kun')], [h, t('soat')], [m, t('daqiqa')], [s, t('soniya')]];
   el.innerHTML = v.map(x => `<div><b>${pad(x[0])}</b><small>${x[1]}</small></div>`).join('');
 }
 setInterval(tick, 1000);
@@ -751,25 +813,25 @@ async function submitForm() {
   const f = state.form;
   let body;
   if (f.type === 'solo') {
-    if (f.name.trim().length < 2) return toast('Ismingizni kiriting');
-    if (!okPhone(f.phone)) return toast(`Telefon raqamni to'g'ri kiriting`);
-    if (!okEmail(f.email)) return toast(`Email manzilni to'g'ri kiriting`);
+    if (f.name.trim().length < 2) return toast(t("Ismingizni kiriting"));
+    if (!okPhone(f.phone)) return toast(t("Telefon raqamni to'g'ri kiriting"));
+    if (!okEmail(f.email)) return toast(t("Email manzilni to'g'ri kiriting"));
     body = { gameId: f.gameId, kind: 'solo', name: f.name, phone: f.phone, email: f.email };
   } else if (f.type === 'team') {
-    if (f.members.some(s => s.trim().length < 2)) return toast(`${TEAM_SIZE} ta o'yinchining hammasini kiriting`);
-    if (!okPhone(f.phone)) return toast('Kapitanning telefon raqamini kiriting');
+    if (f.members.some(s => s.trim().length < 2)) return toast(t("{n} ta o'yinchining hammasini kiriting", { n: TEAM_SIZE }));
+    if (!okPhone(f.phone)) return toast(t("Kapitanning telefon raqamini kiriting"));
     body = { gameId: f.gameId, kind: 'team', teamName: f.teamName, members: f.members, captain: f.captain, phone: f.phone };
-  } else return toast('Avval tanlang: jamoa yoki yakka');
+  } else return toast(t("Avval tanlang: jamoa yoki yakka"));
   if (!(await act('/api/register', body))) return;
   const g = byId(f.gameId), wait = g && statusOf(g) === 'wait';
   state.form = null; state.open = null; state.tab = 'mine';
   render(); window.scrollTo(0, 0);
-  toast(wait ? 'Navbatga yozildingiz' : 'Muvaffaqiyatli yozildingiz ✅');
+  toast(wait ? t('Navbatga yozildingiz') : t('Muvaffaqiyatli yozildingiz ✅'));
 }
 
 function openAdminForm(g, dateStr) {
   if (g) {
-    state.aform = { id: g.id, date: ymd(new Date(g.ts)), time: fmtTime(g.ts), place: g.place, mapUrl: g.mapUrl, capacity: String(g.capacity), title: g.title };
+    state.aform = { id: g.id, date: ymd(new Date(g.ts)), time: fmtTime(g.ts), place: g.place, mapUrl: g.mapUrl, capacity: String(g.capacity), title: g.title === "Futbol o'yini" ? '' : g.title };
   } else {
     const last = [...state.games].sort((a, b) => b.ts - a.ts)[0];   // oxirgi o'yin ma'lumotlarini nusxalaymiz
     state.aform = { id: null, date: dateStr || ymd(nextSaturday()), time: last ? fmtTime(last.ts) : '20:00',
@@ -780,22 +842,25 @@ function openAdminForm(g, dateStr) {
 
 async function saveAdminForm() {
   const f = state.aform;
-  if (!f.date || !f.time) return toast('Sana va vaqtni kiriting');
+  if (!f.date || !f.time) return toast(t("Sana va vaqtni kiriting"));
   const [y, m, d] = f.date.split('-').map(Number), [hh, mm] = f.time.split(':').map(Number);
   const ts = new Date(y, m - 1, d, hh, mm, 0, 0).getTime();
-  if (!Number.isFinite(ts)) return toast(`Sana yoki vaqt noto'g'ri`);
+  if (!Number.isFinite(ts)) return toast(t("Sana yoki vaqt noto'g'ri"));
   const cap = parseInt(f.capacity, 10);
-  if (!(cap >= 1 && cap <= 200)) return toast(`O'rinlar soni 1 dan 200 gacha bo'lsin`);
+  if (!(cap >= 1 && cap <= 200)) return toast(t("O'rinlar soni 1 dan 200 gacha bo'lsin"));
   const ok = await act('/api/admin/game', { id: f.id, ts, title: f.title, place: f.place, mapUrl: f.mapUrl, capacity: cap },
-    f.id ? 'Saqlandi ✅' : `O'yin qo'shildi ✅`);
+    f.id ? t('Saqlandi ✅') : t("O'yin qo'shildi ✅"));
   if (ok) { state.aform = null; render(); window.scrollTo(0, 0); }
 }
 
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-a]'); if (!t || t.disabled) return;
-  const a = t.dataset.a, id = t.dataset.id;
+  if (state.langOpen && !e.target.closest('.langbox')) { state.langOpen = false; render(); }   // menyudan tashqariga bosilsa yopiladi
+  const el = e.target.closest('[data-a]'); if (!el || el.disabled) return;
+  const a = el.dataset.a, id = el.dataset.id;
   haptic();
-  if (a === 'tab') { state.tab = id; state.open = null; state.adminView = null; state.profView = null; state.pform = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
+  if (a === 'lang') { state.langOpen = !state.langOpen; render(); }
+  else if (a === 'setlang') { state.langOpen = false; setLang(id); render(); }
+  else if (a === 'tab') { state.langOpen = false; state.tab = id; state.open = null; state.adminView = null; state.profView = null; state.pform = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
   else if (a === 'open') { state.open = +id; render(); window.scrollTo(0, 0); }
   else if (a === 'back') { state.open = null; render(); }
   else if (a === 'allgames') { state.allGames = !state.allGames; render(); }
@@ -804,17 +869,17 @@ document.addEventListener('click', async e => {
   else if (a === 'pback') { state.profView = null; state.pform = null; render(); }
   else if (a === 'psave') {
     const f = state.pform, name = f.name.trim(), phone = f.phone.trim(), email = f.email.trim();
-    if (name && name.length < 2) return toast('Ism juda qisqa');
-    if (phone && !okPhone(phone)) return toast(`Telefon raqamni to'g'ri kiriting`);
-    if (email && !okEmail(email)) return toast(`Email manzilni to'g'ri kiriting`);
+    if (name && name.length < 2) return toast(t("Ism juda qisqa"));
+    if (phone && !okPhone(phone)) return toast(t("Telefon raqamni to'g'ri kiriting"));
+    if (email && !okEmail(email)) return toast(t("Email manzilni to'g'ri kiriting"));
     Object.assign(profile, { name, phone, email });
-    if (!saveProf(profile)) return toast(`Saqlab bo'lmadi`);
-    state.profView = null; state.pform = null; render(); toast('Saqlandi ✅');
+    if (!saveProf(profile)) return toast(t("Saqlab bo'lmadi"));
+    state.profView = null; state.pform = null; render(); toast(t('Saqlandi ✅'));
   }
-  else if (a === 'pclear') { Object.assign(profile, { name: '', phone: '', email: '' }); saveProf(profile); state.pform = { name: '', phone: '', email: '' }; render(); toast('Tozalandi'); }
+  else if (a === 'pclear') { Object.assign(profile, { name: '', phone: '', email: '' }); saveProf(profile); state.pform = { name: '', phone: '', email: '' }; render(); toast(t('Tozalandi')); }
   else if (a === 'copyid') {
     const txt = String(tu.id);
-    try { navigator.clipboard.writeText(txt).then(() => toast('ID nusxalandi'), () => toast('ID: ' + txt)); } catch (e) { toast('ID: ' + txt); }
+    try { navigator.clipboard.writeText(txt).then(() => toast(t('ID nusxalandi')), () => toast('ID: ' + txt)); } catch (e) { toast('ID: ' + txt); }
   }
   else if (a === 'adm') { state.adminView = id; render(); window.scrollTo(0, 0); }
   else if (a === 'admback') { state.adminView = null; render(); window.scrollTo(0, 0); }
@@ -822,7 +887,7 @@ document.addEventListener('click', async e => {
   else if (a === 'map') { const g = byId(+id) || loadHist().find(h => h.id === +id); if (g && g.mapUrl) { if (tg && tg.openLink) tg.openLink(g.mapUrl); else window.open(g.mapUrl, '_blank', 'noopener'); } }
   else if (a === 'wk') { state.week = Math.min(MAX_WEEKS, Math.max(0, state.week + +id)); render(); }
   else if (a === 'reg') {
-    if (!state.me) return toast(`Telegram ichida oching, shunda ro'yxatdan o'tish mumkin`);
+    if (!state.me) return toast(t("Telegram ichida oching, shunda ro'yxatdan o'tish mumkin"));
     state.form = { gameId: +id, type: null, name: shownName(), phone: profile.phone, email: profile.email, teamName: '', members: Array(TEAM_SIZE).fill(''), captain: 0 };
     render(); window.scrollTo(0, 0);
   }
@@ -830,31 +895,32 @@ document.addEventListener('click', async e => {
   else if (a === 'type') { state.form.type = id; if (id === 'team' && !state.form.members[0].trim()) state.form.members[0] = shownName(); render(); }
   else if (a === 'cap') { state.form.captain = +id; render(); }
   else if (a === 'confirm') await submitForm();
-  else if (a === 'cancel') { if (await act('/api/cancel', { gameId: +id }, `Ro'yxatdan chiqdingiz`)) render(); }
+  else if (a === 'cancel') { if (await act('/api/cancel', { gameId: +id }, t("Ro'yxatdan chiqdingiz"))) render(); }
   /* admin */
   else if (a === 'newgame') openAdminForm(null, id || null);
   else if (a === 'editgame') { const g = byId(+id); if (g) openAdminForm(g); }
   else if (a === 'aback') { state.aform = null; render(); }
   else if (a === 'asave') await saveAdminForm();
-  else if (a === 'delgame') ask(`Bu o'yinni va unga yozilganlarning hammasini o'chirasizmi?`, async () => {
-    if (await act('/api/admin/game/delete', { id: +id }, `O'yin o'chirildi`)) { if (state.open === +id) state.open = null; render(); }
+  else if (a === 'delgame') ask(t("Bu o'yinni va unga yozilganlarning hammasini o'chirasizmi?"), async () => {
+    if (await act('/api/admin/game/delete', { id: +id }, t("O'yin o'chirildi"))) { if (state.open === +id) state.open = null; render(); }
   });
-  else if (a === 'delreg') ask(`Bu yozuvni ro'yxatdan o'chirasizmi?`, async () => {
-    if (await act('/api/admin/reg/delete', { id: +id }, `Yozuv o'chirildi`)) render();
+  else if (a === 'delreg') ask(t("Bu yozuvni ro'yxatdan o'chirasizmi?"), async () => {
+    if (await act('/api/admin/reg/delete', { id: +id }, t("Yozuv o'chirildi"))) render();
   });
   else if (a === 'addadmin') {
     const uid = state.newAdmin.uid.trim();
-    if (!/^\d{5,15}$/.test(uid)) return toast(`Telegram ID faqat raqamlardan iborat bo'lsin`);
-    if (await act('/api/admin/admins/add', { uid: Number(uid), name: state.newAdmin.name }, `Admin qo'shildi ✅`)) { state.newAdmin = { uid: '', name: '' }; render(); }
+    if (!/^\d{5,15}$/.test(uid)) return toast(t("Telegram ID faqat raqamlardan iborat bo'lsin"));
+    if (await act('/api/admin/admins/add', { uid: Number(uid), name: state.newAdmin.name }, t("Admin qo'shildi ✅"))) { state.newAdmin = { uid: '', name: '' }; render(); }
   }
-  else if (a === 'rmadmin') ask(`Bu adminni o'chirasizmi?`, async () => {
-    if (await act('/api/admin/admins/remove', { uid: Number(id) }, `Admin o'chirildi`)) render();
+  else if (a === 'rmadmin') ask(t("Bu adminni o'chirasizmi?"), async () => {
+    if (await act('/api/admin/admins/remove', { uid: Number(id) }, t("Admin o'chirildi"))) render();
   });
 });
 
 /* ---------- Ishga tushirish ---------- */
 setInterval(() => { if (!document.hidden) refresh(true); }, POLL_MS);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(true); });
+document.documentElement.lang = LANG; document.title = t('Riga Street Power Liga');
 render();
 refresh(false);
 </script>
