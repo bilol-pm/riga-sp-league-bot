@@ -23,11 +23,9 @@
   .avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#22c55e);
     display:grid;place-items:center;font-weight:700;font-size:18px;overflow:hidden;flex:none}
   .avatar img{width:100%;height:100%;object-fit:cover}
-  .top .name{font-weight:700;font-size:16px}
   .top .sub{color:var(--muted);font-size:12px;margin-top:2px}
   .logo{flex:none;display:block;filter:drop-shadow(0 3px 8px rgba(37,99,235,.45))}
   .league{font-size:20px;font-weight:800;letter-spacing:.2px}
-  .cal-h button:disabled{opacity:.3;cursor:default}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
   .hero{background:linear-gradient(135deg,#14305f 0%,#0f2a4d 45%,#0f3b2e 100%);border-color:#24457a}
@@ -41,23 +39,27 @@
 
   .bar{position:relative;height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin:10px 0 6px}
   .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:99px;transition:width .3s}
-  .bar .mk{position:absolute;top:0;bottom:0;width:2px;background:#ffffffaa}
   .barrow{display:flex;justify-content:space-between;font-size:12px;color:#b9c8ee}
-  .minrow{font-size:12px;margin-top:6px;color:#b9c8ee}
-  .minrow.ok{color:#4ade80}
 
   .btn{width:100%;padding:14px;border-radius:14px;font-weight:700;font-size:16px;
     background:linear-gradient(180deg,#4d8dff,var(--blue2));box-shadow:0 4px 0 #1b47a8;margin-top:8px}
   .btn:active{transform:translateY(2px);box-shadow:0 2px 0 #1b47a8}
+  .btn:disabled{opacity:.6;cursor:default}
   .btn.out{background:transparent;border:1px solid #ef444477;color:#ff8a8a;box-shadow:none}
   .btn.ghost{background:var(--card2);box-shadow:none;border:1px solid var(--line)}
-  .btn.sm{width:auto;padding:10px 14px;font-size:13px;margin:0;border-radius:10px;box-shadow:none}
+  .btn.sm{width:auto;padding:10px 12px;font-size:13px;margin:0;border-radius:10px;box-shadow:none}
+  .btnrow{display:flex;gap:8px;margin-top:12px}
+  .btnrow .btn.sm{flex:1;text-align:center}
 
   h3{margin:18px 2px 10px;font-size:17px}
+  .sec-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 2px 10px}
+  .sec-h h3{margin:0}
   .row{display:flex;align-items:center;gap:12px}
   .grow{flex:1;min-width:0}
   .g-title{font-weight:700}
   .g-sub{color:var(--muted);font-size:13px;margin-top:3px;word-break:break-word}
+  .contact{font-size:12px;color:#9fb6e6;margin-top:3px;word-break:break-all}
+  .maplink{color:#7db0ff;text-decoration:underline;cursor:pointer}
   .datebox{width:52px;flex:none;text-align:center;background:var(--card2);border-radius:12px;padding:6px 0;border:1px solid var(--line)}
   .datebox b{display:block;font-size:20px;line-height:1.1}
   .datebox small{font-size:11px;color:var(--muted);text-transform:uppercase}
@@ -72,20 +74,26 @@
   .player:last-child{border-bottom:0}
   .num{width:26px;text-align:center;color:var(--muted);font-weight:700;font-size:13px;padding-top:8px}
   .pav{width:34px;height:34px;border-radius:50%;background:var(--card2);display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+  .xbtn{flex:none;width:34px;height:34px;border-radius:10px;background:#3a1620;color:#ff8a8a;font-size:13px}
   .me{color:var(--blue)}
   .empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:14px}
   .empty .big{font-size:40px;margin-bottom:8px}
 
   .stats{display:flex;gap:10px}
+  .stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
   .stat{flex:1;text-align:center;background:var(--card2);border-radius:14px;padding:14px 6px}
   .stat b{font-size:24px;display:block}
+  .stats3 .stat b{font-size:22px}
   .stat small{color:var(--muted);font-size:12px}
 
   /* forma */
-  input[type=text],input[type=tel],input[type=email]{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit;font-size:16px;outline:none}
+  input[type=text],input[type=tel],input[type=email],input[type=url],input[type=number],input[type=date],input[type=time]{
+    width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);
+    font:inherit;font-size:16px;outline:none;color-scheme:dark;min-width:0}
   input:focus{border-color:var(--blue)}
   .field-l{font-size:12px;color:var(--muted);margin:14px 0 6px}
-  .note{font-size:13px;color:#fbbf24;background:#f59e0b14;border:1px solid #f59e0b44;border-radius:10px;padding:8px 10px;margin-top:12px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .note{font-size:13px;color:#fbbf24;background:#f59e0b14;border:1px solid #f59e0b44;border-radius:10px;padding:8px 10px;margin:0 0 12px}
   .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .opt{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
   .opt .ic{font-size:26px;display:block;margin-bottom:6px}
@@ -96,19 +104,22 @@
   .mrow input{flex:1;min-width:0}
   .capbtn{flex:none;width:48px;height:48px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-size:18px;opacity:.45}
   .capbtn.on{opacity:1;background:#3d3210;border-color:#f59e0b99}
-  .hint{font-size:12px;color:var(--muted);margin:2px 0 10px}
+  .hint{font-size:12px;color:var(--muted);margin:6px 0 4px}
+  .adm-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .adm-row:last-child{border-bottom:0}
 
   /* kalendar */
   .cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
   .cal-h b{font-size:16px}
   .cal-h button{background:var(--card2);border:1px solid var(--line);width:36px;height:36px;border-radius:10px;font-size:16px}
+  .cal-h button:disabled{opacity:.3;cursor:default}
   .cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
   .cal-w{font-size:11px;color:var(--muted);padding:4px 0}
   .cal-d{aspect-ratio:1;display:grid;place-items:center;font-size:14px;border-radius:10px;border:1px solid transparent}
   .cal-d.today{border-color:var(--blue)}
   .cal-d.game{background:#1d3a74;color:#cfe0ff;font-weight:700;cursor:pointer}
   .cal-d.reg{background:#14532d;color:#86efac}
-  .cal-d.blank{visibility:hidden}
+  .cal-d.add{border:1px dashed #2f4d8a;color:#6f8fc7;cursor:pointer}
   .legend{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
   .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 
@@ -135,6 +146,7 @@
     .datebox{width:46px}
     .cal-d{font-size:13px}
     .opt{padding:12px 6px}
+    .stats3 .stat b{font-size:19px}
   }
 </style>
 </head>
@@ -143,6 +155,13 @@
 <nav id="nav"></nav>
 
 <script>
+/* ---------- Sozlamalar ---------- */
+// Server (Cloudflare Worker) manzili. Server joylashtirilgach shu yerga yoziladi.
+const API_BASE = 'https://riga-sp-api.bilolpm111.workers.dev';
+const TEAM_SIZE = 7;      // bitta jamoada 7 o'yinchi
+const MAX_WEEKS = 12;     // kalendarda necha hafta oldinga o'tish mumkin
+const POLL_MS = 45000;    // ma'lumot qanchada bir yangilanadi
+
 /* ---------- Telegram ---------- */
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) {
@@ -150,95 +169,101 @@ if (tg) {
   try { tg.setHeaderColor('#0a1020'); tg.setBackgroundColor('#0a1020'); } catch (e) {}
 }
 const tu = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-const ME = {
-  id: tu ? tu.id : 1,
-  name: tu ? [tu.first_name, tu.last_name].filter(Boolean).join(' ') : '',
-  username: tu && tu.username ? '@' + tu.username : '',
-  photo: tu && tu.photo_url ? tu.photo_url : ''
-};
-/* Rollar. Telegram ID lar shu yerga yoziladi (o'z ID ingni Profil sahifasidan ko'rasan).
-   OWNER_IDS = asoschi (keyin adminlarni ham shu qo'shadi), ADMIN_IDS = adminlar (do'sting).
-   Oddiy futbolchilar bu ro'yxatlarda bo'lmaydi, shuning uchun Admin tabini ko'rmaydi.
-   DIQQAT: bu faqat ko'rinish. Haqiqiy himoya server ulanganda qo'shiladi. */
-const OWNER_IDS = [5310968084];
-const ADMIN_IDS = [];
-const DEV = ['localhost', '127.0.0.1'].includes(location.hostname);   // faqat o'z kompyuteringda sinash uchun
-const IS_OWNER = !!tu && OWNER_IDS.includes(ME.id);
-const IS_ADMIN = IS_OWNER || (!!tu && ADMIN_IDS.includes(ME.id)) || (DEV && !tu);
+const INIT = (tg && tg.initData) || '';
+const MY_NAME = tu ? [tu.first_name, tu.last_name].filter(Boolean).join(' ') : '';
+const MY_PHOTO = tu && tu.photo_url ? tu.photo_url : '';
+const NICK = tu ? (tu.username ? '@' + tu.username : MY_NAME) : '';
 
-/* ---------- O'yin qoidalari ---------- */
-const TEAM_SIZE = 7;      // bitta jamoada 7 o'yinchi
-const MIN_TEAMS = 3;      // kamida 3 jamoa
-const MAX_TEAMS = 4;      // ko'pi bilan 4 jamoa
-const LIMIT = TEAM_SIZE * MAX_TEAMS;   // 28 o'yinchi
-const MIN_PLAYERS = TEAM_SIZE * MIN_TEAMS; // 21 o'yinchi
-const MAX_WEEKS = 8;      // kalendarda necha hafta oldinga o'tish mumkin
-
-/* ---------- Helpers ---------- */
+/* ---------- Yordamchilar ---------- */
 const DAYS = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
 const MONTHS = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'];
 const WD = ['Du','Se','Ch','Pa','Ju','Sh','Ya'];
 const pad = n => String(n).padStart(2, '0');
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = ts => { const d = new Date(ts); return `${DAYS[d.getDay()]}, ${d.getDate()}-${MONTHS[d.getMonth()]}`; };
 const fmtTime = ts => { const d = new Date(ts); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-const at = (days, h, m) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, m, 0, 0); return d.getTime(); };
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const mondayOf = ts => { const d = new Date(ts); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; };
+const nextSaturday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); while (d.getDay() !== 6) d.setDate(d.getDate() + 1); return d; };
 const haptic = () => { try { tg.HapticFeedback.impactOccurred('light'); } catch (e) {} };
-const okPhone = s => /^\+?[0-9 ()-]{7,}$/.test(s.trim());
-const okEmail = s => /^\S+@\S+\.\S+$/.test(s.trim());
+const okPhone = s => /^\+?[0-9 ()-]{7,20}$/.test(String(s).trim());
+const okEmail = s => /^\S+@\S+\.\S+$/.test(String(s).trim());
 
-/* ---------- Namuna ma'lumotlar (keyin admin paneldan boshqariladi) ---------- */
-function seed() {
-  const solo = (n, i) => ({ uid: 1001 + i, type: 'solo', name: n, phone: '', email: '', ts: Date.now() - i * 1000 });
-  const team = { uid: 2001, type: 'team', teamName: 'Burgutlar', captain: 2, phone: '',
-    members: ['Aziz', 'Jasur', 'Sardor', 'Timur', 'Bobur', 'Dilshod', 'Otabek'], ts: Date.now() - 9000 };
-  const place = 'Stadion (joy keyin yoziladi)';
-  // Har hafta shanba va yakshanba kunlari o'yin (hozircha namuna: shu haftadan 9 hafta oldinga)
-  const games = [];
-  const mon = mondayOf(Date.now());
-  for (let w = 0; w < 9; w++) for (const off of [5, 6]) {
-    const d = new Date(mon); d.setDate(d.getDate() + w * 7 + off); d.setHours(20, 0, 0, 0);
-    games.push({ id: Number('' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate())), title: 'Futbol o\'yini', ts: d.getTime(), place, limit: LIMIT, min: MIN_PLAYERS, players: [] });
-  }
-  const fut = games.filter(g => g.ts > Date.now());
-  if (fut[0]) fut[0].players = [team, solo('Rustam', 1), solo('Anvar', 2), solo('Sanjar', 3)];
-  if (fut[1]) fut[1].players = [solo('Rustam', 1), solo('Anvar', 2)];
-  return games;
-}
-const KEY = 'fb_games_v3';
-function load() { try { const r = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(r) && r.length) return r; } catch (e) {} return seed(); }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state.games)); } catch (e) {} }
-
-/* ---------- State ---------- */
-// tab: games (Asosiy = Register) | mine (Yozilgan o'yinlar) | profile | admin
-// open: o'yin ichi (ro'yxat) | form: ro'yxatdan o'tish formasi sahifasi
-const state = { games: load(), tab: 'games', open: null, form: null, week: 0 };
+/* ---------- Holat ---------- */
+// me: server aytadi (id, role: player | admin | owner). games: serverdagi real o'yinlar.
+const state = {
+  me: null, games: [], admins: [], loaded: false, error: '', busy: false,
+  tab: 'games',        // games | mine | profile | admin
+  open: null,          // ochilgan o'yin (ro'yxat)
+  form: null,          // ro'yxatdan o'tish formasi
+  aform: null,         // admin: o'yin qo'shish/tahrirlash formasi
+  newAdmin: { uid: '', name: '' },
+  week: 0
+};
+const isAdmin = () => !!state.me && (state.me.role === 'admin' || state.me.role === 'owner');
+const isOwner = () => !!state.me && state.me.role === 'owner';
 const upcoming = () => state.games.filter(g => g.ts > Date.now()).sort((a, b) => a.ts - b.ts);
 const byId = id => state.games.find(g => g.id === id);
-const isReg = g => g.players.some(p => p.uid === ME.id);
-const myIndex = g => g.players.findIndex(p => p.uid === ME.id);
-const sizeOf = p => p.type === 'team' ? p.members.length : 1;
+const myReg = g => g.players.find(p => p.mine);
+const isReg = g => !!myReg(g);
+const statusOf = g => { const p = myReg(g); return !p ? null : (p.waiting ? 'wait' : 'ok'); };
+const freeOf = g => Math.max(0, g.capacity - g.used);
 
-/* Joylar hisobi: yozilish tartibida. Sig'masa, navbatga tushadi. */
-function calc(g) {
-  let used = 0, waiting = 0;
-  const flags = g.players.map(p => {
-    const s = sizeOf(p);
-    if (used + s <= g.limit) { used += s; return true; }
-    waiting += s; return false;
-  });
-  return { used, waiting, flags };
+/* ---------- Server bilan aloqa ---------- */
+async function api(path, body) {
+  if (!API_BASE) throw new Error('Server manzili sozlanmagan');
+  const opts = { headers: {} };
+  if (INIT) opts.headers['X-Init-Data'] = INIT;
+  if (body !== undefined) {
+    opts.method = 'POST';
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  let r, j = null;
+  try { r = await fetch(API_BASE + path, opts); }
+  catch (e) { throw new Error("Server bilan aloqa yo'q. Internetni tekshiring."); }
+  try { j = await r.json(); } catch (e) {}
+  if (!r.ok || !j || j.ok === false) {
+    const err = new Error((j && j.error) || 'Xatolik yuz berdi');
+    err.status = r.status;
+    throw err;
+  }
+  return j;
 }
-const statusOf = g => { const i = myIndex(g); return i < 0 ? null : (calc(g).flags[i] ? 'ok' : 'wait'); };
+function applyState(s) {
+  state.me = s.me; state.games = s.games; state.admins = s.admins || [];
+  state.loaded = true; state.error = '';
+}
+const isEditing = () => !!(state.form || state.aform) ||
+  !!(document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
+async function refresh(silent) {
+  try { applyState((await api('/api/state')).state); }
+  catch (e) {
+    if (!state.loaded) state.error = e.message;
+    else if (!silent) toast(e.message);
+    else return;
+  }
+  if (silent && isEditing()) return;   // yozayotgan paytda ekranni buzmaymiz
+  render();
+}
+// O'zgartiruvchi amal: serverga yuboradi, javobdagi yangi holatni oladi
+async function act(path, body, okMsg) {
+  if (state.busy) return false;
+  state.busy = true;
+  try {
+    applyState((await api(path, body)).state);
+    if (okMsg) toast(okMsg);
+    return true;
+  } catch (e) {
+    toast(e.message || 'Xatolik');
+    return false;
+  } finally { state.busy = false; }
+}
 
-/* ---------- Render ---------- */
+/* ---------- Ko'rinish: umumiy bo'laklar ---------- */
 const $app = document.getElementById('app');
 const $nav = document.getElementById('nav');
 
-function avatarHtml() { return `<div class="avatar">${ME.photo ? `<img src="${esc(ME.photo)}">` : (ME.name ? esc(ME.name.charAt(0).toUpperCase()) : '👤')}</div>`; }
-// Tepada: liga nomi + kirgan foydalanuvchining nickname'i (@username, bo'lmasa ismi)
-const NICK = tu ? (tu.username ? '@' + tu.username : ME.name) : '';
 /* Liga logotipi: qalqon + futbol to'pi + chaqmoq (Power) */
 const LOGO = `<svg class="logo" viewBox="0 0 64 64" width="48" height="48" role="img" aria-label="Riga Street Power Liga">
   <defs>
@@ -251,30 +276,35 @@ const LOGO = `<svg class="logo" viewBox="0 0 64 64" width="48" height="48" role=
   <path d="M29 33.2 V26 M34.5 37.2 L41 34.6 M32.4 43.6 L36.4 49 M25.6 43.6 L21.6 49 M23.5 37.2 L17 34.6" stroke="#0f2a4d" stroke-width="1.6" fill="none" stroke-linecap="round"/>
   <path d="M44 7 L31 27 H39 L35 42 L52 20 H42.5 Z" fill="url(#rspB)" stroke="#0f2a4d" stroke-width="2" stroke-linejoin="round"/>
 </svg>`;
+const avatarHtml = () => `<div class="avatar">${MY_PHOTO ? `<img src="${esc(MY_PHOTO)}">` : (MY_NAME ? esc(MY_NAME.charAt(0).toUpperCase()) : '👤')}</div>`;
 function topHtml() {
   return `<div class="top">${LOGO}<div class="grow"><div class="league">Riga Street Power Liga</div>${NICK ? `<div class="sub">${esc(NICK)}</div>` : ''}</div></div>`;
 }
 function progress(g) {
-  const c = calc(g);
-  return `<div class="bar"><i style="width:${c.used / g.limit * 100}%"></i></div>
-    <div class="barrow"><span>${c.used}/${g.limit} o'yinchi</span><span>${c.waiting ? c.waiting + ' kishi navbatda' : (g.limit - c.used) + ' ta bo\'sh'}</span></div>`;
+  const pct = Math.min(100, g.used / g.capacity * 100);
+  return `<div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="barrow"><span>${g.used}/${g.capacity} o'yinchi</span><span>${g.waiting ? g.waiting + ' kishi navbatda' : freeOf(g) + ` ta bo'sh joy`}</span></div>`;
 }
+function placeHtml(g) {
+  const t = g.place ? esc(g.place) : `Joy keyin e'lon qilinadi`;
+  return g.place && g.mapUrl ? `<span class="maplink" data-a="map" data-id="${g.id}">${t}</span>` : t;
+}
+const metaHtml = g => `<div class="meta"><span>📅 ${fmtDate(g.ts)}</span><span>🕗 ${fmtTime(g.ts)}</span><span>📍 ${placeHtml(g)}</span></div>`;
 function actionBtn(g) {
-  if (g.ts <= Date.now()) return '<button class="btn ghost" disabled style="opacity:.6">O\'yin o\'tgan</button>';
+  if (g.ts <= Date.now()) return `<button class="btn ghost" disabled>O'yin o'tgan</button>`;
   return isReg(g)
     ? `<button class="btn out" data-a="cancel" data-id="${g.id}">Ro'yxatdan chiqish</button>`
     : `<button class="btn" data-a="reg" data-id="${g.id}">Ro'yxatdan o'tish</button>`;
 }
 function badge(g) {
-  if (g.ts <= Date.now()) return '<span class="tag full">O\'tgan</span>';
+  if (g.ts <= Date.now()) return `<span class="tag full">O'tgan</span>`;
   const s = statusOf(g);
-  if (s === 'ok') return '<span class="tag ok">Yozildingiz</span>';
-  if (s === 'wait') return '<span class="tag wait">Navbatda</span>';
-  return calc(g).used >= g.limit ? '<span class="tag full">To\'lgan</span>' : '';
+  if (s === 'ok') return `<span class="tag ok">Yozildingiz</span>`;
+  if (s === 'wait') return `<span class="tag wait">Navbatda</span>`;
+  return freeOf(g) === 0 ? `<span class="tag full">To'lgan</span>` : '';
 }
 
-/* Kalendar: o'yin kunlari belgilanadi */
-/* Hafta bo'yicha: tanlangan haftaning shanba va yakshanba o'yinlari */
+/* ---------- Hafta va kalendar ---------- */
 const weekStart = () => { const d = mondayOf(Date.now()); d.setDate(d.getDate() + state.week * 7); return d; };
 function weekGames() {
   const s = weekStart(), e = new Date(s); e.setDate(e.getDate() + 7);
@@ -291,81 +321,98 @@ function weekNav() {
     <button data-a="wk" data-id="1" ${state.week >= MAX_WEEKS ? 'disabled' : ''}>›</button></div>`;
 }
 function calendarHtml() {
-  const s = weekStart(), now = new Date(), gs = weekGames();
+  const s = weekStart(), now = new Date(), gs = weekGames(), adm = isAdmin();
   let cells = WD.map(w => `<div class="cal-w">${w}</div>`).join('');
   for (let i = 0; i < 7; i++) {
     const d = new Date(s); d.setDate(d.getDate() + i);
     const g = gs.find(x => new Date(x.ts).toDateString() === d.toDateString());
     const today = d.toDateString() === now.toDateString();
-    const cls = ['cal-d', today ? 'today' : '', g ? (isReg(g) ? 'game reg' : 'game') : ''].join(' ');
-    cells += g ? `<div class="${cls}" data-a="open" data-id="${g.id}">${d.getDate()}</div>` : `<div class="${cls}">${d.getDate()}</div>`;
+    const notPast = d.getTime() + 86400000 > now.getTime();
+    const cls = 'cal-d' + (today ? ' today' : '') + (g ? (isReg(g) ? ' game reg' : ' game') : '');
+    if (g) cells += `<div class="${cls}" data-a="open" data-id="${g.id}">${d.getDate()}</div>`;
+    else if (adm && notPast) cells += `<div class="${cls} add" data-a="newgame" data-id="${ymd(d)}">${d.getDate()}</div>`;
+    else cells += `<div class="${cls}">${d.getDate()}</div>`;
   }
   return `<h3>Kalendar</h3><div class="card">
     ${weekNav()}
     <div class="cal-g">${cells}</div>
     <div class="legend"><span><i style="background:#1d3a74"></i>O'yin kuni</span><span><i style="background:#14532d"></i>Siz yozilgansiz</span><span><i style="border:1px solid var(--blue)"></i>Bugun</span></div>
+    ${adm ? `<div class="hint">Admin: bo'sh kunni bossangiz, shu kunga yangi o'yin qo'shiladi.</div>` : ''}
   </div>`;
 }
 
-/* Asosiy sahifa = Register sahifasi */
+/* ---------- Sahifalar ---------- */
+function viewBoot() {
+  if (state.error) {
+    return topHtml() + `<div class="empty"><div class="big">📡</div>${esc(state.error)}<br><br>
+      <button class="btn" data-a="retry">Qayta urinish</button></div>`;
+  }
+  return topHtml() + `<div class="empty"><div class="big">⚽</div>Yuklanmoqda…</div>`;
+}
+
+/* Asosiy sahifa: keyingi o'yin + o'yin sanalari + kalendar */
 function viewGames() {
+  const note = INIT ? '' : `<div class="note">Ro'yxatdan o'tish uchun bu sahifani Telegramdagi bot orqali oching.</div>`;
   const list = upcoming();
-  if (!list.length) return topHtml() + `<div class="empty"><div class="big">📅</div>Hozircha o'yin yo'q.<br>Yangi o'yin qo'shilishini kuting.</div>` + calendarHtml();
-  const [next] = list;
-  const wg = weekGames();
+  if (!list.length) {
+    return topHtml() + note + `<div class="empty"><div class="big">📅</div>Hozircha rejalashtirilgan o'yin yo'q.<br>Yangi o'yin e'lon qilinishini kuting.</div>` + calendarHtml();
+  }
+  const next = list[0], wg = weekGames();
   const hero = `<div class="card hero">
     <div class="label">Keyingi o'yin</div>
     <div class="count" id="cd"><div><b>--</b><small>kun</small></div><div><b>--</b><small>soat</small></div><div><b>--</b><small>daqiqa</small></div><div><b>--</b><small>soniya</small></div></div>
     <div class="title">${esc(next.title)}</div>
-    <div class="meta"><span>📅 ${fmtDate(next.ts)}</span><span>🕗 ${fmtTime(next.ts)}</span><span>📍 ${esc(next.place)}</span></div>
+    ${metaHtml(next)}
     ${progress(next)}
     ${actionBtn(next)}
     <button class="btn ghost" data-a="open" data-id="${next.id}">Ro'yxatni ko'rish</button>
   </div>`;
   const more = `<h3>O'yin sanalari</h3><div class="card">${weekNav()}</div>` + (wg.length ? wg.map(g => {
     const d = new Date(g.ts);
+    const slots = g.ts <= Date.now() ? '' : `<div class="g-sub">${g.used}/${g.capacity} o'yinchi · ${freeOf(g)} ta bo'sh joy</div>`;
     return `<div class="card link" data-a="open" data-id="${g.id}"><div class="row">
       <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
       <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
-      <div class="g-sub">${calc(g).used}/${g.limit} o'yinchi</div></div>
+        <div class="g-sub">📍 ${g.place ? esc(g.place) : `Joy keyin e'lon qilinadi`}</div>${slots}</div>
       ${badge(g)}</div></div>`;
-  }).join('') : '<div class="empty"><div class="big">📅</div>Bu haftada o\'yin yo\'q.</div>');
-  return topHtml() + hero + more + calendarHtml();
+  }).join('') : `<div class="empty"><div class="big">📅</div>Bu haftada o'yin yo'q.</div>`);
+  return topHtml() + note + hero + more + calendarHtml();
 }
 
-/* O'yin ichi: ma'lumot + ro'yxat (telefon va email boshqalarga ko'rsatilmaydi) */
+/* O'yin ichi: ma'lumot + ro'yxat (telefon va email faqat adminga) */
 function viewDetail() {
   const g = byId(state.open);
-  if (!g) { state.open = null; return viewGames(); }
-  const flags = calc(g).flags;
-  const players = g.players.length ? g.players.map((p, i) => {
-    const mine = p.uid === ME.id;
-    const wait = !flags[i] ? '<span class="tag wait">Navbatda</span>' : '';
-    if (p.type === 'team') {
+  if (!g) { state.open = null; return state.tab === 'admin' ? viewAdmin() : viewGames(); }
+  const adm = isAdmin();
+  const rows = g.players.length ? g.players.map((p, i) => {
+    const wait = p.waiting ? '<span class="tag wait">Navbatda</span>' : '';
+    const x = adm ? `<button class="xbtn" data-a="delreg" data-id="${p.id}" aria-label="O'chirish">✖</button>` : '';
+    const contact = adm ? `<div class="contact">📞 ${esc(p.phone || '')}${p.email ? ' · ✉️ ' + esc(p.email) : ''}${p.username ? ' · @' + esc(p.username) : ''}</div>` : '';
+    if (p.kind === 'team') {
       return `<div class="player"><div class="num">${i + 1}</div><div class="pav">👥</div>
-        <div class="grow"><div class="${mine ? 'me' : ''}">${esc(p.teamName || 'Jamoa')} · ${p.members.length} kishi${mine ? ' (siz)' : ''}</div>
+        <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)} · ${p.members.length} kishi${p.mine ? ' (siz)' : ''}</div>
         <div class="g-sub">⭐ Kapitan: ${esc(p.members[p.captain] || '—')}</div>
-        <div class="g-sub">${esc(p.members.join(', '))}</div></div>${wait}</div>`;
+        <div class="g-sub">${esc(p.members.join(', '))}</div>${contact}</div>${wait}${x}</div>`;
     }
     return `<div class="player"><div class="num">${i + 1}</div><div class="pav">${esc(p.name.charAt(0).toUpperCase())}</div>
-      <div class="grow"><div class="${mine ? 'me' : ''}">${esc(p.name)}${mine ? ' (siz)' : ''}</div>
-      <div class="g-sub">Yakka o'yinchi</div></div>${wait}</div>`;
-  }).join('')
-    : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.<br>Birinchi bo'ling!</div>`;
+      <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)}${p.mine ? ' (siz)' : ''}</div>
+      <div class="g-sub">Yakka o'yinchi</div>${contact}</div>${wait}${x}</div>`;
+  }).join('') : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.<br>Birinchi bo'ling!</div>`;
+  const ctrl = adm ? `<div class="btnrow">
+      <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ Tahrirlash</button>
+      <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑 O'chirish</button></div>` : '';
   return `<button class="back" data-a="back">← Orqaga</button>
     <div class="card hero"><div class="label">O'yin</div><div class="title">${esc(g.title)}</div>
-      <div class="meta"><span>📅 ${fmtDate(g.ts)}</span><span>🕗 ${fmtTime(g.ts)}</span><span>📍 ${esc(g.place)}</span></div>
-      ${progress(g)}${actionBtn(g)}</div>
-    <h3>Ro'yxat</h3><div class="card">${players}</div>`;
+      ${metaHtml(g)}${progress(g)}${actionBtn(g)}${ctrl}</div>
+    <h3>Ro'yxat</h3><div class="card">${rows}</div>`;
 }
 
-/* Keyingi sahifa: avval jamoa/yakka tanlanadi, keyin forma */
+/* Ro'yxatdan o'tish: avval jamoa/yakka tanlanadi, keyin forma */
 function viewForm() {
   const f = state.form, g = byId(f.gameId);
   if (!g) { state.form = null; return viewGames(); }
   const size = f.type === 'team' ? TEAM_SIZE : 1;
-  const over = f.type && calc(g).used + size > g.limit;
-
+  const over = f.type && g.used + size > g.capacity;
   let fields = '';
   if (f.type === 'solo') {
     fields = `
@@ -374,7 +421,7 @@ function viewForm() {
       <div class="field-l">Telefon raqam</div>
       <input type="tel" data-f="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">
       <div class="field-l">Email</div>
-      <input type="email" data-f="email" maxlength="60" placeholder="email@example.com" value="${esc(f.email)}">`;
+      <input type="email" data-f="email" maxlength="80" placeholder="email@example.com" value="${esc(f.email)}">`;
   } else if (f.type === 'team') {
     const rows = f.members.map((m, i) => `<div class="mrow">
       <input type="text" data-f="m${i}" maxlength="40" placeholder="${i + 1}-o'yinchi ismi" value="${esc(m)}">
@@ -388,10 +435,8 @@ function viewForm() {
       <div class="field-l">Kapitan: ${esc((f.members[f.captain] || '').trim() || '—')}. Telefon raqami</div>
       <input type="tel" data-f="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">`;
   }
-
   return `<button class="back" data-a="fback">← Orqaga</button>
-    <div class="card hero"><div class="label">Ro'yxatdan o'tish</div><div class="title">${esc(g.title)}</div>
-      <div class="meta"><span>📅 ${fmtDate(g.ts)}</span><span>🕗 ${fmtTime(g.ts)}</span><span>📍 ${esc(g.place)}</span></div></div>
+    <div class="card hero"><div class="label">Ro'yxatdan o'tish</div><div class="title">${esc(g.title)}</div>${metaHtml(g)}</div>
     <div class="card">
       <div class="field-l" style="margin-top:0">Sizda jamoa bormi yoki yakka o'zingizmisiz?</div>
       <div class="opts">
@@ -399,72 +444,132 @@ function viewForm() {
         <button class="opt ${f.type === 'solo' ? 'on' : ''}" data-a="type" data-id="solo"><span class="ic">🙋</span><b>Yakka o'zim</b><small>Jamoasiz yozilaman</small></button>
       </div>
       ${fields}
-      ${over ? '<div class="note">Hozir joy yetarli emas. Siz navbat ro\'yxatiga yozilasiz.</div>' : ''}
-      ${f.type ? '<button class="btn" data-a="confirm">Tasdiqlash</button>' : ''}
+      ${over ? `<div class="note" style="margin-top:12px">Hozir joy yetarli emas. Siz navbat ro'yxatiga yozilasiz.</div>` : ''}
+      ${f.type ? `<button class="btn" data-a="confirm">Tasdiqlash</button>` : ''}
     </div>`;
 }
 
-/* Yozilgan o'yinlar: forma to'ldirilganda card bo'lib shu yerga tushadi */
+/* Yozilgan o'yinlar */
 function viewMine() {
   const mine = upcoming().filter(isReg);
   const body = mine.length ? mine.map(g => {
-    const d = new Date(g.ts), p = g.players[myIndex(g)];
-    const who = p.type === 'team'
-      ? `<div class="g-sub">👥 ${esc(p.teamName || 'Jamoa')} · ${p.members.length} kishi</div><div class="g-sub">⭐ Kapitan: ${esc(p.members[p.captain] || '—')}</div>`
+    const d = new Date(g.ts), p = myReg(g);
+    const who = p.kind === 'team'
+      ? `<div class="g-sub">👥 ${esc(p.name)} · ${p.members.length} kishi</div><div class="g-sub">⭐ Kapitan: ${esc(p.members[p.captain] || '—')}</div>`
       : `<div class="g-sub">🙋 ${esc(p.name)} · yakka</div>`;
     return `<div class="card"><div class="row">
       <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
       <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
-        <div class="g-sub">📍 ${esc(g.place)}</div>${who}</div>
+        <div class="g-sub">📍 ${g.place ? esc(g.place) : `Joy keyin e'lon qilinadi`}</div>${who}</div>
       ${badge(g)}</div>
-      <div class="row" style="margin-top:12px;gap:8px">
-        <button class="btn ghost sm" style="flex:1" data-a="open" data-id="${g.id}">Ro'yxat</button>
-        <button class="btn out sm" style="flex:1" data-a="cancel" data-id="${g.id}">Bekor qilish</button>
+      <div class="btnrow">
+        <button class="btn ghost sm" data-a="open" data-id="${g.id}">Ro'yxat</button>
+        <button class="btn out sm" data-a="cancel" data-id="${g.id}">Bekor qilish</button>
       </div></div>`;
-  }).join('')
-    : `<div class="empty"><div class="big">📝</div>Siz hali hech qaysi o'yinga yozilmagansiz.</div>`;
+  }).join('') : `<div class="empty"><div class="big">📝</div>Siz hali hech qaysi o'yinga yozilmagansiz.</div>`;
   return topHtml() + `<h3 style="margin-top:4px">Yozilgan o'yinlar</h3>` + body;
 }
 
 function viewProfile() {
-  const total = state.games.filter(isReg).length;
-  const role = IS_OWNER ? '<span class="tag ok">Asoschi</span>' : (IS_ADMIN && !DEV ? '<span class="tag ok">Admin</span>' : '');
-  return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(ME.name || 'Foydalanuvchi')}</div>
-    <div class="g-sub">${esc(ME.username) || 'username yo\'q'}</div>
-    ${tu ? `<div class="g-sub">Telegram ID: <b>${ME.id}</b></div>` : ''}</div>${role}</div></div>
-    <div class="stats"><div class="stat"><b>${total}</b><small>Yozilgan o'yinlar</small></div>
+  const role = isOwner() ? '<span class="tag ok">Asoschi</span>' : (isAdmin() ? '<span class="tag ok">Admin</span>' : '');
+  return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(MY_NAME || 'Foydalanuvchi')}</div>
+    <div class="g-sub">${tu && tu.username ? '@' + esc(tu.username) : `username yo'q`}</div>
+    ${tu ? `<div class="g-sub">Telegram ID: <b>${tu.id}</b></div>` : ''}</div>${role}</div></div>
+    <div class="stats"><div class="stat"><b>${state.games.filter(isReg).length}</b><small>Yozilgan o'yinlar</small></div>
     <div class="stat"><b>${upcoming().filter(isReg).length}</b><small>Kutilayotgan</small></div></div>`;
 }
 
+/* Admin panel */
 function viewAdmin() {
-  if (!IS_ADMIN) return viewGames();
+  if (!isAdmin()) return viewGames();
+  const up = upcoming();
+  const sum = f => up.reduce((a, g) => a + f(g), 0);
+  const stats = `<div class="stats3">
+    <div class="stat"><b>${up.length}</b><small>O'yinlar</small></div>
+    <div class="stat"><b>${sum(g => g.used)}</b><small>O'yinchilar</small></div>
+    <div class="stat"><b>${sum(g => freeOf(g))}</b><small>Bo'sh joy</small></div>
+    <div class="stat"><b>${sum(g => g.players.filter(p => p.kind === 'team').length)}</b><small>Jamoalar</small></div>
+    <div class="stat"><b>${sum(g => g.players.filter(p => p.kind === 'solo').length)}</b><small>Yakkalar</small></div>
+    <div class="stat"><b>${sum(g => g.waiting)}</b><small>Navbatda</small></div></div>`;
+  const games = up.length ? up.map(g => {
+    const d = new Date(g.ts);
+    const teams = g.players.filter(p => p.kind === 'team').length, solos = g.players.filter(p => p.kind === 'solo').length;
+    return `<div class="card"><div class="row">
+      <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
+      <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
+        <div class="g-sub">📍 ${g.place ? esc(g.place) : `Joy kiritilmagan`}</div>
+        <div class="g-sub">${g.used}/${g.capacity} o'yinchi · ${freeOf(g)} bo'sh · ${teams} jamoa, ${solos} yakka${g.waiting ? ` · ${g.waiting} navbatda` : ''}</div></div></div>
+      <div class="btnrow">
+        <button class="btn ghost sm" data-a="open" data-id="${g.id}">👥 Ro'yxat</button>
+        <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ Tahrirlash</button>
+        <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑</button></div></div>`;
+  }).join('') : `<div class="empty"><div class="big">📅</div>Hali o'yin qo'shilmagan.<br>"+ Yangi o'yin" tugmasini bosing.</div>`;
+  const admins = isOwner() ? `<div class="sec-h"><h3>Adminlar</h3></div><div class="card">
+      ${state.admins.length ? state.admins.map(a => `<div class="adm-row"><div class="grow"><div class="g-title">${esc(a.name || 'Nomsiz')}</div><div class="g-sub">ID: ${a.uid}</div></div>
+        <button class="btn out sm" data-a="rmadmin" data-id="${a.uid}">O'chirish</button></div>`).join('') : `<div class="g-sub">Hozircha adminlar yo'q. Faqat siz (asoschi) borsiz.</div>`}
+      <div class="field-l">Yangi admin: Telegram ID</div>
+      <input type="text" inputmode="numeric" data-na="uid" maxlength="15" placeholder="Masalan: 123456789" value="${esc(state.newAdmin.uid)}">
+      <div class="field-l">Ismi (ixtiyoriy)</div>
+      <input type="text" data-na="name" maxlength="60" placeholder="Masalan: Do'stim" value="${esc(state.newAdmin.name)}">
+      <div class="hint">Admin bo'ladigan odam Mini App'ni ochib, Profil sahifasidagi Telegram ID raqamini sizga yuborsin.</div>
+      <button class="btn" data-a="addadmin">Admin qo'shish</button></div>` : '';
   return topHtml() + `<div class="card"><div class="g-title">🛠 Admin panel</div>
-    <div class="g-sub" style="margin-top:8px">${IS_OWNER ? 'Siz asoschisiz: adminlarni ham siz qo\'shasiz.' : 'Siz adminsiz.'}</div></div>
-    <div class="card"><div class="g-sub">O'yin qo'shish va o'chirish, o'yinchilarni ko'rish, yakkalarni jamoalarga taqsimlash tez orada qo'shiladi.</div></div>
-    ${DEV ? '<button class="btn ghost" data-a="reset">Namuna ma\'lumotlarni tiklash</button>' : ''}`;
+    <div class="g-sub" style="margin-top:6px">${isOwner() ? `Siz asoschisiz: o'yinlarni va adminlarni boshqarasiz.` : `Siz adminsiz: o'yinlarni boshqarasiz.`}</div></div>
+    ${stats}
+    <div class="sec-h"><h3>O'yinlar</h3><button class="btn sm" data-a="newgame" data-id="">+ Yangi o'yin</button></div>
+    ${games}${admins}`;
+}
+
+/* Admin: o'yin qo'shish / tahrirlash formasi */
+function viewAdminForm() {
+  const f = state.aform, editing = !!f.id;
+  return `<button class="back" data-a="aback">← Orqaga</button>
+    <div class="card"><div class="g-title">${editing ? `O'yinni tahrirlash` : `Yangi o'yin`}</div>
+      <div class="row2">
+        <div><div class="field-l">Sana</div><input type="date" data-af="date" value="${esc(f.date)}"></div>
+        <div><div class="field-l">Boshlanish vaqti</div><input type="time" data-af="time" value="${esc(f.time)}"></div>
+      </div>
+      <div class="field-l">Joy (lokatsiya nomi)</div>
+      <input type="text" data-af="place" maxlength="120" placeholder="Masalan: Imanta stadioni" value="${esc(f.place)}">
+      <div class="field-l">Xarita havolasi (ixtiyoriy)</div>
+      <input type="url" data-af="mapUrl" maxlength="300" placeholder="https://maps.google.com/..." value="${esc(f.mapUrl)}">
+      <div class="field-l">O'yinchilar soni (sig'im)</div>
+      <input type="number" inputmode="numeric" min="1" max="200" data-af="capacity" value="${esc(f.capacity)}">
+      <div class="hint">${TEAM_SIZE} × jamoalar soni. 3 jamoa = ${TEAM_SIZE * 3}, 4 jamoa = ${TEAM_SIZE * 4}.</div>
+      <div class="field-l">Sarlavha (ixtiyoriy)</div>
+      <input type="text" data-af="title" maxlength="60" placeholder="Futbol o'yini" value="${esc(f.title)}">
+      <button class="btn" data-a="asave">${editing ? 'Saqlash' : `O'yinni qo'shish`}</button>
+    </div>`;
 }
 
 function render() {
+  if (state.tab === 'admin' && !isAdmin()) state.tab = 'games';
   let html;
-  if (state.tab === 'admin' && !IS_ADMIN) state.tab = 'games';
-  if (state.form) html = viewForm();
+  if (!state.loaded) html = viewBoot();
+  else if (state.aform) html = viewAdminForm();
+  else if (state.form) html = viewForm();
   else if (state.tab === 'games') html = state.open ? viewDetail() : viewGames();
   else if (state.tab === 'mine') html = state.open ? viewDetail() : viewMine();
   else if (state.tab === 'profile') html = viewProfile();
-  else html = viewAdmin();
+  else html = state.open ? viewDetail() : viewAdmin();
   $app.innerHTML = html;
   const tabs = [['games', '⚽', 'Asosiy'], ['mine', '📝', 'Yozilganlar'], ['profile', '👤', 'Profil']];
-  if (IS_ADMIN) tabs.push(['admin', '🛠', 'Admin']);
+  if (isAdmin()) tabs.push(['admin', '🛠', 'Admin']);
   $nav.innerHTML = tabs.map(t => `<button data-a="tab" data-id="${t[0]}" class="${state.tab === t[0] ? 'on' : ''}"><span>${t[1]}</span>${t[2]}</button>`).join('');
   tick();
 }
 
 function toast(t) {
   const el = document.createElement('div'); el.className = 'toast'; el.textContent = t;
-  document.body.appendChild(el); setTimeout(() => el.remove(), 2400);
+  document.body.appendChild(el); setTimeout(() => el.remove(), 2600);
+}
+const canConfirm = tg && tg.showConfirm && (!tg.isVersionAtLeast || tg.isVersionAtLeast('6.2'));
+function ask(msg, yes) {
+  if (canConfirm) tg.showConfirm(msg, ok => { if (ok) yes(); });
+  else if (window.confirm(msg)) yes();
 }
 
-/* ---------- Countdown ---------- */
+/* ---------- Teskari sanoq ---------- */
 function tick() {
   const el = document.getElementById('cd'); const n = upcoming()[0];
   if (!el || !n) return;
@@ -477,66 +582,105 @@ function tick() {
 }
 setInterval(tick, 1000);
 
-/* ---------- Actions ---------- */
-// input maydonlari qiymatini state ga yozib boradi
+/* ---------- Amallar ---------- */
 document.addEventListener('input', e => {
-  const k = e.target.dataset && e.target.dataset.f;
-  if (!k || !state.form) return;
-  const f = state.form;
-  if (/^m\d$/.test(k)) f.members[+k.slice(1)] = e.target.value; else f[k] = e.target.value;
+  const d = e.target.dataset || {};
+  if (d.f && state.form) {
+    if (/^m\d$/.test(d.f)) state.form.members[+d.f.slice(1)] = e.target.value; else state.form[d.f] = e.target.value;
+  } else if (d.af && state.aform) state.aform[d.af] = e.target.value;
+  else if (d.na) state.newAdmin[d.na] = e.target.value;
 });
 
-function submitForm() {
-  const f = state.form, g = byId(f.gameId);
-  let entry;
+async function submitForm() {
+  const f = state.form;
+  let body;
   if (f.type === 'solo') {
     if (f.name.trim().length < 2) return toast('Ismingizni kiriting');
-    if (!okPhone(f.phone)) return toast('Telefon raqamni to\'g\'ri kiriting');
-    if (!okEmail(f.email)) return toast('Email manzilni to\'g\'ri kiriting');
-    entry = { uid: ME.id, type: 'solo', name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim(), ts: Date.now() };
+    if (!okPhone(f.phone)) return toast(`Telefon raqamni to'g'ri kiriting`);
+    if (!okEmail(f.email)) return toast(`Email manzilni to'g'ri kiriting`);
+    body = { gameId: f.gameId, kind: 'solo', name: f.name, phone: f.phone, email: f.email };
   } else if (f.type === 'team') {
-    const ms = f.members.map(s => s.trim());
-    if (ms.some(s => s.length < 2)) return toast(`${TEAM_SIZE} ta o'yinchining hammasini kiriting`);
+    if (f.members.some(s => s.trim().length < 2)) return toast(`${TEAM_SIZE} ta o'yinchining hammasini kiriting`);
     if (!okPhone(f.phone)) return toast('Kapitanning telefon raqamini kiriting');
-    entry = { uid: ME.id, type: 'team', teamName: f.teamName.trim(), members: ms, captain: f.captain, phone: f.phone.trim(), ts: Date.now() };
+    body = { gameId: f.gameId, kind: 'team', teamName: f.teamName, members: f.members, captain: f.captain, phone: f.phone };
   } else return toast('Avval tanlang: jamoa yoki yakka');
-
-  if (!isReg(g)) g.players.push(entry);
-  save();
-  const wait = statusOf(g) === 'wait';
+  if (!(await act('/api/register', body))) return;
+  const g = byId(f.gameId), wait = g && statusOf(g) === 'wait';
   state.form = null; state.open = null; state.tab = 'mine';
   render(); window.scrollTo(0, 0);
   toast(wait ? 'Navbatga yozildingiz' : 'Muvaffaqiyatli yozildingiz ✅');
 }
 
-document.addEventListener('click', e => {
-  const t = e.target.closest('[data-a]'); if (!t) return;
+function openAdminForm(g, dateStr) {
+  if (g) {
+    state.aform = { id: g.id, date: ymd(new Date(g.ts)), time: fmtTime(g.ts), place: g.place, mapUrl: g.mapUrl, capacity: String(g.capacity), title: g.title };
+  } else {
+    const last = [...state.games].sort((a, b) => b.ts - a.ts)[0];   // oxirgi o'yin ma'lumotlarini nusxalaymiz
+    state.aform = { id: null, date: dateStr || ymd(nextSaturday()), time: last ? fmtTime(last.ts) : '20:00',
+      place: last ? last.place : '', mapUrl: last ? last.mapUrl : '', capacity: String(last ? last.capacity : TEAM_SIZE * 4), title: '' };
+  }
+  render(); window.scrollTo(0, 0);
+}
+
+async function saveAdminForm() {
+  const f = state.aform;
+  if (!f.date || !f.time) return toast('Sana va vaqtni kiriting');
+  const [y, m, d] = f.date.split('-').map(Number), [hh, mm] = f.time.split(':').map(Number);
+  const ts = new Date(y, m - 1, d, hh, mm, 0, 0).getTime();
+  if (!Number.isFinite(ts)) return toast(`Sana yoki vaqt noto'g'ri`);
+  const cap = parseInt(f.capacity, 10);
+  if (!(cap >= 1 && cap <= 200)) return toast(`O'rinlar soni 1 dan 200 gacha bo'lsin`);
+  const ok = await act('/api/admin/game', { id: f.id, ts, title: f.title, place: f.place, mapUrl: f.mapUrl, capacity: cap },
+    f.id ? 'Saqlandi ✅' : `O'yin qo'shildi ✅`);
+  if (ok) { state.aform = null; render(); window.scrollTo(0, 0); }
+}
+
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-a]'); if (!t || t.disabled) return;
   const a = t.dataset.a, id = t.dataset.id;
   haptic();
-  if (a === 'tab') { state.tab = id; state.open = null; state.form = null; render(); window.scrollTo(0, 0); }
-  else if (a === 'open') { state.open = +id; if (state.tab === 'profile' || state.tab === 'admin') state.tab = 'games'; render(); window.scrollTo(0, 0); }
+  if (a === 'tab') { state.tab = id; state.open = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
+  else if (a === 'open') { state.open = +id; if (state.tab === 'profile') state.tab = 'games'; render(); window.scrollTo(0, 0); }
   else if (a === 'back') { state.open = null; render(); }
+  else if (a === 'retry') { state.error = ''; render(); refresh(false); }
+  else if (a === 'map') { const g = byId(+id); if (g && g.mapUrl) { if (tg && tg.openLink) tg.openLink(g.mapUrl); else window.open(g.mapUrl, '_blank', 'noopener'); } }
+  else if (a === 'wk') { state.week = Math.min(MAX_WEEKS, Math.max(0, state.week + +id)); render(); }
   else if (a === 'reg') {
-    state.form = { gameId: +id, type: null, name: ME.name, phone: '', email: '', teamName: '', members: Array(TEAM_SIZE).fill(''), captain: 0 };
+    if (!state.me) return toast(`Telegram ichida oching, shunda ro'yxatdan o'tish mumkin`);
+    state.form = { gameId: +id, type: null, name: MY_NAME, phone: '', email: '', teamName: '', members: Array(TEAM_SIZE).fill(''), captain: 0 };
     render(); window.scrollTo(0, 0);
   }
   else if (a === 'fback') { state.form = null; render(); }
-  else if (a === 'type') {
-    state.form.type = id;
-    if (id === 'team' && !state.form.members[0].trim()) state.form.members[0] = ME.name;
-    render();
-  }
+  else if (a === 'type') { state.form.type = id; if (id === 'team' && !state.form.members[0].trim()) state.form.members[0] = MY_NAME; render(); }
   else if (a === 'cap') { state.form.captain = +id; render(); }
-  else if (a === 'confirm') submitForm();
-  else if (a === 'cancel') {
-    const g = byId(+id); g.players = g.players.filter(p => p.uid !== ME.id);
-    save(); render(); toast('Ro\'yxatdan chiqdingiz');
+  else if (a === 'confirm') await submitForm();
+  else if (a === 'cancel') { if (await act('/api/cancel', { gameId: +id }, `Ro'yxatdan chiqdingiz`)) render(); }
+  /* admin */
+  else if (a === 'newgame') openAdminForm(null, id || null);
+  else if (a === 'editgame') { const g = byId(+id); if (g) openAdminForm(g); }
+  else if (a === 'aback') { state.aform = null; render(); }
+  else if (a === 'asave') await saveAdminForm();
+  else if (a === 'delgame') ask(`Bu o'yinni va unga yozilganlarning hammasini o'chirasizmi?`, async () => {
+    if (await act('/api/admin/game/delete', { id: +id }, `O'yin o'chirildi`)) { if (state.open === +id) state.open = null; render(); }
+  });
+  else if (a === 'delreg') ask(`Bu yozuvni ro'yxatdan o'chirasizmi?`, async () => {
+    if (await act('/api/admin/reg/delete', { id: +id }, `Yozuv o'chirildi`)) render();
+  });
+  else if (a === 'addadmin') {
+    const uid = state.newAdmin.uid.trim();
+    if (!/^\d{5,15}$/.test(uid)) return toast(`Telegram ID faqat raqamlardan iborat bo'lsin`);
+    if (await act('/api/admin/admins/add', { uid: Number(uid), name: state.newAdmin.name }, `Admin qo'shildi ✅`)) { state.newAdmin = { uid: '', name: '' }; render(); }
   }
-  else if (a === 'wk') { state.week = Math.min(MAX_WEEKS, Math.max(0, state.week + +id)); render(); }
-  else if (a === 'reset') { state.games = seed(); save(); render(); toast('Tiklandi'); }
+  else if (a === 'rmadmin') ask(`Bu adminni o'chirasizmi?`, async () => {
+    if (await act('/api/admin/admins/remove', { uid: Number(id) }, `Admin o'chirildi`)) render();
+  });
 });
 
+/* ---------- Ishga tushirish ---------- */
+setInterval(() => { if (!document.hidden) refresh(true); }, POLL_MS);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(true); });
 render();
+refresh(false);
 </script>
 </body>
 </html>
