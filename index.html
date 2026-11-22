@@ -233,6 +233,7 @@ const state = {
   aform: null,         // admin: o'yin qo'shish/tahrirlash formasi
   profView: null,      // profil: null | edit
   pform: null,
+  allGames: false,     // admin Yozilganlar: hammasini ko'rsatish
   adminView: null,     // admin menyusi: null | games | players | stats | admins
   newAdmin: { uid: '', name: '' },
   week: 0
@@ -435,6 +436,18 @@ function playerRow(p, i, adm) {
     <div class="g-sub">Yakka o'yinchi</div>${contact}</div>${wait}${x}</div>`;
 }
 
+/* Bitta o'yin statistikasi (admin uchun) */
+function gameTiles(g) {
+  const n = k => g.players.filter(p => p.kind === k).length;
+  return `<div class="stats3" style="margin-top:12px">
+    <div class="stat"><b>${g.used}/${g.capacity}</b><small>O'yinchilar</small></div>
+    <div class="stat"><b>${freeOf(g)}</b><small>Bo'sh joy</small></div>
+    <div class="stat"><b>${g.waiting}</b><small>Navbatda</small></div>
+    <div class="stat"><b>${n('team')}</b><small>Jamoalar</small></div>
+    <div class="stat"><b>${n('solo')}</b><small>Yakkalar</small></div>
+    <div class="stat"><b>${g.players.length}</b><small>Yozuvlar</small></div></div>`;
+}
+
 /* O'yin ichi: ma'lumot + ro'yxat */
 function viewDetail() {
   const g = byId(state.open);
@@ -442,16 +455,19 @@ function viewDetail() {
   const adm = isAdmin();
   // Oddiy o'yinchi faqat o'z yozuvini ko'radi; boshqalar ro'yxati faqat adminga
   const mineP = myReg(g);
-  const rows = adm
-    ? (g.players.length ? g.players.map((p, i) => playerRow(p, i, true)).join('') : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.</div>`)
-    : (mineP ? whoHtml(mineP) : `<div class="g-sub">Siz hali bu o'yinga yozilmagansiz.</div>`);
+  const teams = g.players.filter(p => p.kind === 'team'), solos = g.players.filter(p => p.kind === 'solo');
+  const grp = (title, arr) => arr.length ? `<h3>${title} (${arr.length})</h3><div class="card">${arr.map((p, i) => playerRow(p, i, true)).join('')}</div>` : '';
+  const body = adm
+    ? gameTiles(g) + (g.players.length ? grp('👥 Jamoalar', teams) + grp(`🙋 Yakka o'yinchilar`, solos)
+        : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.</div>`)
+    : `<h3>Mening yozuvim</h3><div class="card">${mineP ? whoHtml(mineP) : `<div class="g-sub">Siz hali bu o'yinga yozilmagansiz.</div>`}</div>`;
   const ctrl = adm ? `<div class="btnrow">
       <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ Tahrirlash</button>
       <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑 O'chirish</button></div>` : '';
   return `<button class="back" data-a="back">← Orqaga</button>
     <div class="card hero"><div class="label">O'yin</div><div class="title">${esc(g.title)}</div>
       ${metaHtml(g)}${progress(g)}${actionBtn(g)}${ctrl}</div>
-    <h3>${adm ? `Ro'yxat` : 'Mening yozuvim'}</h3><div class="card">${rows}</div>`;
+    ${body}`;
 }
 
 /* Ro'yxatdan o'tish: avval jamoa/yakka tanlanadi, keyin forma */
@@ -497,7 +513,26 @@ function viewForm() {
 }
 
 /* Yozilgan o'yinlar */
+/* Admin uchun Yozilganlar: o'yin sanalari kartochkalari (ko'p bo'lsa eng yaqin 3 tasi) */
+function viewMineAdmin() {
+  const up = upcoming(), many = up.length > 10;
+  const list = many && !state.allGames ? up.slice(0, 3) : up;
+  const cards = list.map(g => {
+    const d = new Date(g.ts), t = gameCount(g, 'team'), so = gameCount(g, 'solo');
+    return `<div class="card link" data-a="open" data-id="${g.id}"><div class="row">
+      <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
+      <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
+        <div class="g-sub">📍 ${g.place ? esc(g.place) : `Joy kiritilmagan`}</div>
+        <div class="g-sub">${g.used}/${g.capacity} o'yinchi · ${t} jamoa · ${so} yakka${g.waiting ? ` · ${g.waiting} navbatda` : ''}</div></div>
+      <div class="chev">›</div></div></div>`;
+  }).join('');
+  const toggle = many ? `<button class="btn ghost" data-a="allgames">${state.allGames ? 'Faqat eng yaqin 3 tasini ko\'rsatish' : `Hammasini ko'rish (${up.length})`}</button>` : '';
+  const sub = many && !state.allGames ? `<div class="g-sub" style="margin:-6px 2px 12px">Eng yaqin 3 ta o'yin</div>` : '';
+  return topHtml() + `<h3 style="margin-top:4px">Yozilganlar</h3>${sub}` +
+    (cards || `<div class="empty"><div class="big">📅</div>Hali o'yinlar yo'q.</div>`) + toggle;
+}
 function viewMine() {
+  if (isAdmin()) return viewMineAdmin();
   const mine = upcoming().filter(isReg);
   const body = mine.length ? mine.map(g => {
     const d = new Date(g.ts), p = myReg(g);
@@ -780,6 +815,7 @@ document.addEventListener('click', async e => {
   if (a === 'tab') { state.tab = id; state.open = null; state.adminView = null; state.profView = null; state.pform = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
   else if (a === 'open') { state.open = +id; render(); window.scrollTo(0, 0); }
   else if (a === 'back') { state.open = null; render(); }
+  else if (a === 'allgames') { state.allGames = !state.allGames; render(); }
   else if (a === 'pgame') { state.open = +id; render(); window.scrollTo(0, 0); }
   else if (a === 'pedit') { state.profView = 'edit'; state.pform = { name: profile.name, phone: profile.phone, email: profile.email }; render(); window.scrollTo(0, 0); }
   else if (a === 'pback') { state.profView = null; state.pform = null; render(); }
