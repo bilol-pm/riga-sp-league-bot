@@ -332,6 +332,7 @@ function placeHtml(g) {
 }
 const metaHtml = g => `<div class="meta"><span>📅 ${fmtDate(g.ts)}</span><span>🕗 ${fmtTime(g.ts)}</span><span>📍 ${placeHtml(g)}</span></div>`;
 function actionBtn(g) {
+  if (isAdmin()) return '';   // adminlar o'yinga yozilmaydi, faqat boshqaradi
   if (g.ts <= Date.now()) return `<button class="btn ghost" disabled>O'yin o'tgan</button>`;
   return isReg(g)
     ? `<button class="btn out" data-a="cancel" data-id="${g.id}">Ro'yxatdan chiqish</button>`
@@ -398,7 +399,7 @@ function viewGames() {
   if (!list.length) {
     return topHtml() + note + `<div class="empty"><div class="big">📅</div>Hozircha rejalashtirilgan o'yin yo'q.<br>Yangi o'yin e'lon qilinishini kuting.</div>` + calendarHtml();
   }
-  const next = list[0], wg = weekGames();
+  const next = list[0];
   const hero = `<div class="card hero">
     <div class="label">Keyingi o'yin</div>
     <div class="count" id="cd"><div><b>--</b><small>kun</small></div><div><b>--</b><small>soat</small></div><div><b>--</b><small>daqiqa</small></div><div><b>--</b><small>soniya</small></div></div>
@@ -408,16 +409,7 @@ function viewGames() {
     ${actionBtn(next)}
     <button class="btn ghost" data-a="open" data-id="${next.id}">Ro'yxatni ko'rish</button>
   </div>`;
-  const more = `<h3>O'yin sanalari</h3><div class="card">${weekNav()}</div>` + (wg.length ? wg.map(g => {
-    const d = new Date(g.ts);
-    const slots = g.ts <= Date.now() ? '' : `<div class="g-sub">${isAdmin() ? `${g.used}/${g.capacity} o'yinchi · ` : ''}${freeOf(g)} ta bo'sh joy</div>`;
-    return `<div class="card link" data-a="open" data-id="${g.id}"><div class="row">
-      <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
-      <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
-        <div class="g-sub">📍 ${g.place ? esc(g.place) : `Joy keyin e'lon qilinadi`}</div>${slots}</div>
-      ${badge(g)}</div></div>`;
-  }).join('') : `<div class="empty"><div class="big">📅</div>Bu haftada o'yin yo'q.</div>`);
-  return topHtml() + note + hero + more + calendarHtml();
+  return topHtml() + note + hero + calendarHtml();
 }
 
 /* O'yinchi qatori (telefon va email faqat adminga) */
@@ -464,10 +456,11 @@ function viewDetail() {
   const ctrl = adm ? `<div class="btnrow">
       <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ Tahrirlash</button>
       <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑 O'chirish</button></div>` : '';
-  return `<button class="back" data-a="back">← Orqaga</button>
-    <div class="card hero"><div class="label">O'yin</div><div class="title">${esc(g.title)}</div>
-      ${metaHtml(g)}${progress(g)}${actionBtn(g)}${ctrl}</div>
-    ${body}`;
+  const top = adm
+    ? `<div class="g-title" style="font-size:19px;margin:2px 2px 4px">${fmtDate(g.ts)}, ${fmtTime(g.ts)}</div><div class="g-sub" style="margin:0 2px 4px">📍 ${placeHtml(g)}</div>`
+    : `<div class="card hero"><div class="label">O'yin</div><div class="title">${esc(g.title)}</div>
+      ${metaHtml(g)}${progress(g)}${actionBtn(g)}${ctrl}</div>`;
+  return `<button class="back" data-a="back">← Orqaga</button>${top}${body}`;
 }
 
 /* Ro'yxatdan o'tish: avval jamoa/yakka tanlanadi, keyin forma */
