@@ -86,6 +86,18 @@
   .stats3 .stat b{font-size:22px}
   .stat small{color:var(--muted);font-size:12px}
 
+
+  /* admin menyu ro'yxati */
+  .sec-l{font-size:20px;font-weight:800;margin:6px 2px 10px}
+  .menu{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:16px}
+  .li{display:flex;align-items:center;gap:14px;padding:14px;border-bottom:1px solid var(--line);cursor:pointer}
+  .li:last-child{border-bottom:0}
+  .li:active{background:var(--card2)}
+  .li-ic{width:44px;height:44px;flex:none;border-radius:12px;background:#1b2c52;display:grid;place-items:center;font-size:21px}
+  .li-t{font-weight:700;font-size:16px}
+  .li-s{color:var(--muted);font-size:13px;margin-top:2px}
+  .chev{color:var(--muted);font-size:24px;line-height:1;flex:none}
+
   /* forma */
   input[type=text],input[type=tel],input[type=email],input[type=url],input[type=number],input[type=date],input[type=time]{
     width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);
@@ -197,6 +209,7 @@ const state = {
   open: null,          // ochilgan o'yin (ro'yxat)
   form: null,          // ro'yxatdan o'tish formasi
   aform: null,         // admin: o'yin qo'shish/tahrirlash formasi
+  adminView: null,     // admin menyusi: null | games | players | stats | admins
   newAdmin: { uid: '', name: '' },
   week: 0
 };
@@ -379,25 +392,28 @@ function viewGames() {
   return topHtml() + note + hero + more + calendarHtml();
 }
 
-/* O'yin ichi: ma'lumot + ro'yxat (telefon va email faqat adminga) */
+/* O'yinchi qatori (telefon va email faqat adminga) */
+function playerRow(p, i, adm) {
+  const wait = p.waiting ? '<span class="tag wait">Navbatda</span>' : '';
+  const x = adm ? `<button class="xbtn" data-a="delreg" data-id="${p.id}" aria-label="O'chirish">✖</button>` : '';
+  const contact = adm ? `<div class="contact">📞 ${esc(p.phone || '')}${p.email ? ' · ✉️ ' + esc(p.email) : ''}${p.username ? ' · @' + esc(p.username) : ''}</div>` : '';
+  if (p.kind === 'team') {
+    return `<div class="player"><div class="num">${i + 1}</div><div class="pav">👥</div>
+      <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)} · ${p.members.length} kishi${p.mine ? ' (siz)' : ''}</div>
+      <div class="g-sub">⭐ Kapitan: ${esc(p.members[p.captain] || '—')}</div>
+      <div class="g-sub">${esc(p.members.join(', '))}</div>${contact}</div>${wait}${x}</div>`;
+  }
+  return `<div class="player"><div class="num">${i + 1}</div><div class="pav">${esc(p.name.charAt(0).toUpperCase())}</div>
+    <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)}${p.mine ? ' (siz)' : ''}</div>
+    <div class="g-sub">Yakka o'yinchi</div>${contact}</div>${wait}${x}</div>`;
+}
+
+/* O'yin ichi: ma'lumot + ro'yxat */
 function viewDetail() {
   const g = byId(state.open);
   if (!g) { state.open = null; return state.tab === 'admin' ? viewAdmin() : viewGames(); }
   const adm = isAdmin();
-  const rows = g.players.length ? g.players.map((p, i) => {
-    const wait = p.waiting ? '<span class="tag wait">Navbatda</span>' : '';
-    const x = adm ? `<button class="xbtn" data-a="delreg" data-id="${p.id}" aria-label="O'chirish">✖</button>` : '';
-    const contact = adm ? `<div class="contact">📞 ${esc(p.phone || '')}${p.email ? ' · ✉️ ' + esc(p.email) : ''}${p.username ? ' · @' + esc(p.username) : ''}</div>` : '';
-    if (p.kind === 'team') {
-      return `<div class="player"><div class="num">${i + 1}</div><div class="pav">👥</div>
-        <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)} · ${p.members.length} kishi${p.mine ? ' (siz)' : ''}</div>
-        <div class="g-sub">⭐ Kapitan: ${esc(p.members[p.captain] || '—')}</div>
-        <div class="g-sub">${esc(p.members.join(', '))}</div>${contact}</div>${wait}${x}</div>`;
-    }
-    return `<div class="player"><div class="num">${i + 1}</div><div class="pav">${esc(p.name.charAt(0).toUpperCase())}</div>
-      <div class="grow"><div class="${p.mine ? 'me' : ''}">${esc(p.name)}${p.mine ? ' (siz)' : ''}</div>
-      <div class="g-sub">Yakka o'yinchi</div>${contact}</div>${wait}${x}</div>`;
-  }).join('') : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.<br>Birinchi bo'ling!</div>`;
+  const rows = g.players.length ? g.players.map((p, i) => playerRow(p, i, adm)).join('') : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.<br>Birinchi bo'ling!</div>`;
   const ctrl = adm ? `<div class="btnrow">
       <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ Tahrirlash</button>
       <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑 O'chirish</button></div>` : '';
@@ -479,45 +495,80 @@ function viewProfile() {
     <div class="stat"><b>${upcoming().filter(isReg).length}</b><small>Kutilayotgan</small></div></div>`;
 }
 
-/* Admin panel */
+/* Admin panel: menyu ro'yxati (har bir bo'lim alohida sahifa) */
+const li = (ic, t, s, a, id) => `<div class="li" data-a="${a}" data-id="${id || ''}"><div class="li-ic">${ic}</div>
+  <div class="grow"><div class="li-t">${t}</div><div class="li-s">${s}</div></div><div class="chev">›</div></div>`;
+const admHead = t => `<button class="back" data-a="admback">← Orqaga</button><h3 style="margin-top:0">${t}</h3>`;
+const gameCount = (g, k) => g.players.filter(p => p.kind === k).length;
+
 function viewAdmin() {
   if (!isAdmin()) return viewGames();
+  const v = state.adminView;
+  if (v === 'games') return viewAdmGames();
+  if (v === 'players') return viewAdmPlayers();
+  if (v === 'stats') return viewAdmStats();
+  if (v === 'admins' && isOwner()) return viewAdmAdmins();
   const up = upcoming();
-  const sum = f => up.reduce((a, g) => a + f(g), 0);
-  const stats = `<div class="stats3">
-    <div class="stat"><b>${up.length}</b><small>O'yinlar</small></div>
-    <div class="stat"><b>${sum(g => g.used)}</b><small>O'yinchilar</small></div>
-    <div class="stat"><b>${sum(g => freeOf(g))}</b><small>Bo'sh joy</small></div>
-    <div class="stat"><b>${sum(g => g.players.filter(p => p.kind === 'team').length)}</b><small>Jamoalar</small></div>
-    <div class="stat"><b>${sum(g => g.players.filter(p => p.kind === 'solo').length)}</b><small>Yakkalar</small></div>
-    <div class="stat"><b>${sum(g => g.waiting)}</b><small>Navbatda</small></div></div>`;
-  const games = up.length ? up.map(g => {
+  const regs = up.reduce((a, g) => a + g.players.length, 0), people = up.reduce((a, g) => a + g.used, 0);
+  const g1 = li('➕', `Yangi o'yin qo'shish`, 'Sana, vaqt, joy va sig\'im', 'newgame') +
+    li('🗓', `O'yinlar`, up.length ? `${up.length} ta rejalashtirilgan` : `Hali o'yin yo'q`, 'adm', 'games') +
+    li('👥', `Ro'yxatdan o'tganlar`, regs ? `${regs} ta yozuv · ${people} o'yinchi` : 'Hali hech kim yozilmagan', 'adm', 'players') +
+    li('📊', 'Statistika', `Bo'sh joylar, jamoalar, navbat`, 'adm', 'stats');
+  const g2 = isOwner() ? `<div class="sec-l">Boshqaruv</div><div class="menu">` +
+    li('🛡', 'Adminlar', state.admins.length ? `${state.admins.length} ta admin` : `Faqat siz (asoschi)`, 'adm', 'admins') + `</div>` : '';
+  return topHtml() + `<div class="sec-l">O'yinlar</div><div class="menu">${g1}</div>${g2}`;
+}
+
+function viewAdmGames() {
+  const up = upcoming();
+  const list = up.length ? up.map(g => {
     const d = new Date(g.ts);
-    const teams = g.players.filter(p => p.kind === 'team').length, solos = g.players.filter(p => p.kind === 'solo').length;
     return `<div class="card"><div class="row">
       <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
       <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
-        <div class="g-sub">📍 ${g.place ? esc(g.place) : `Joy kiritilmagan`}</div>
-        <div class="g-sub">${g.used}/${g.capacity} o'yinchi · ${freeOf(g)} bo'sh · ${teams} jamoa, ${solos} yakka${g.waiting ? ` · ${g.waiting} navbatda` : ''}</div></div></div>
+        <div class="g-sub">📍 ${g.place ? esc(g.place) : 'Joy kiritilmagan'}</div>
+        <div class="g-sub">${g.used}/${g.capacity} o'yinchi · ${freeOf(g)} ta bo'sh joy</div></div></div>
       <div class="btnrow">
         <button class="btn ghost sm" data-a="open" data-id="${g.id}">👥 Ro'yxat</button>
         <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ Tahrirlash</button>
         <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑</button></div></div>`;
-  }).join('') : `<div class="empty"><div class="big">📅</div>Hali o'yin qo'shilmagan.<br>"+ Yangi o'yin" tugmasini bosing.</div>`;
-  const admins = isOwner() ? `<div class="sec-h"><h3>Adminlar</h3></div><div class="card">
+  }).join('') : `<div class="empty"><div class="big">📅</div>Hali o'yin qo'shilmagan.</div>`;
+  return admHead(`O'yinlar`) + `<button class="btn" data-a="newgame" data-id="" style="margin:0 0 12px">+ Yangi o'yin</button>` + list;
+}
+
+function viewAdmPlayers() {
+  const up = upcoming();
+  const blocks = up.map(g => `<div class="sec-h"><h3 style="font-size:15px">${fmtDate(g.ts)}, ${fmtTime(g.ts)}</h3><span class="g-sub" style="margin:0">${g.used}/${g.capacity}</span></div>
+    <div class="card">${g.players.length ? g.players.map((p, i) => playerRow(p, i, true)).join('') : `<div class="g-sub">Hali hech kim yozilmagan.</div>`}</div>`).join('');
+  return admHead(`Ro'yxatdan o'tganlar`) + (blocks || `<div class="empty"><div class="big">📅</div>Hali o'yin qo'shilmagan.</div>`);
+}
+
+function viewAdmStats() {
+  const up = upcoming();
+  const sum = f => up.reduce((a, g) => a + f(g), 0);
+  const tiles = `<div class="stats3">
+    <div class="stat"><b>${up.length}</b><small>O'yinlar</small></div>
+    <div class="stat"><b>${sum(g => g.used)}</b><small>O'yinchilar</small></div>
+    <div class="stat"><b>${sum(g => freeOf(g))}</b><small>Bo'sh joy</small></div>
+    <div class="stat"><b>${sum(g => gameCount(g, 'team'))}</b><small>Jamoalar</small></div>
+    <div class="stat"><b>${sum(g => gameCount(g, 'solo'))}</b><small>Yakkalar</small></div>
+    <div class="stat"><b>${sum(g => g.waiting)}</b><small>Navbatda</small></div></div>`;
+  const per = up.map(g => `<div class="card"><div class="g-title">${fmtDate(g.ts)}, ${fmtTime(g.ts)}</div>${progress(g)}
+    <div class="g-sub">${gameCount(g, 'team')} jamoa · ${gameCount(g, 'solo')} yakka${g.waiting ? ` · ${g.waiting} navbatda` : ''}</div></div>`).join('');
+  return admHead('Statistika') + tiles + (per ? `<h3>Har bir o'yin</h3>${per}` : '');
+}
+
+function viewAdmAdmins() {
+  return admHead('Adminlar') + `<div class="card">
       ${state.admins.length ? state.admins.map(a => `<div class="adm-row"><div class="grow"><div class="g-title">${esc(a.name || 'Nomsiz')}</div><div class="g-sub">ID: ${a.uid}</div></div>
-        <button class="btn out sm" data-a="rmadmin" data-id="${a.uid}">O'chirish</button></div>`).join('') : `<div class="g-sub">Hozircha adminlar yo'q. Faqat siz (asoschi) borsiz.</div>`}
-      <div class="field-l">Yangi admin: Telegram ID</div>
+        <button class="btn out sm" data-a="rmadmin" data-id="${a.uid}">O'chirish</button></div>`).join('') : `<div class="g-sub">Hozircha adminlar yo'q. Faqat siz (asoschi) borsiz.</div>`}</div>
+    <h3>Yangi admin qo'shish</h3><div class="card">
+      <div class="field-l" style="margin-top:0">Telegram ID</div>
       <input type="text" inputmode="numeric" data-na="uid" maxlength="15" placeholder="Masalan: 123456789" value="${esc(state.newAdmin.uid)}">
       <div class="field-l">Ismi (ixtiyoriy)</div>
       <input type="text" data-na="name" maxlength="60" placeholder="Masalan: Do'stim" value="${esc(state.newAdmin.name)}">
       <div class="hint">Admin bo'ladigan odam Mini App'ni ochib, Profil sahifasidagi Telegram ID raqamini sizga yuborsin.</div>
-      <button class="btn" data-a="addadmin">Admin qo'shish</button></div>` : '';
-  return topHtml() + `<div class="card"><div class="g-title">🛠 Admin panel</div>
-    <div class="g-sub" style="margin-top:6px">${isOwner() ? `Siz asoschisiz: o'yinlarni va adminlarni boshqarasiz.` : `Siz adminsiz: o'yinlarni boshqarasiz.`}</div></div>
-    ${stats}
-    <div class="sec-h"><h3>O'yinlar</h3><button class="btn sm" data-a="newgame" data-id="">+ Yangi o'yin</button></div>
-    ${games}${admins}`;
+      <button class="btn" data-a="addadmin">Admin qo'shish</button></div>`;
 }
 
 /* Admin: o'yin qo'shish / tahrirlash formasi */
@@ -639,9 +690,11 @@ document.addEventListener('click', async e => {
   const t = e.target.closest('[data-a]'); if (!t || t.disabled) return;
   const a = t.dataset.a, id = t.dataset.id;
   haptic();
-  if (a === 'tab') { state.tab = id; state.open = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
+  if (a === 'tab') { state.tab = id; state.open = null; state.adminView = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
   else if (a === 'open') { state.open = +id; if (state.tab === 'profile') state.tab = 'games'; render(); window.scrollTo(0, 0); }
   else if (a === 'back') { state.open = null; render(); }
+  else if (a === 'adm') { state.adminView = id; render(); window.scrollTo(0, 0); }
+  else if (a === 'admback') { state.adminView = null; render(); window.scrollTo(0, 0); }
   else if (a === 'retry') { state.error = ''; render(); refresh(false); }
   else if (a === 'map') { const g = byId(+id); if (g && g.mapUrl) { if (tg && tg.openLink) tg.openLink(g.mapUrl); else window.open(g.mapUrl, '_blank', 'noopener'); } }
   else if (a === 'wk') { state.week = Math.min(MAX_WEEKS, Math.max(0, state.week + +id)); render(); }
