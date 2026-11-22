@@ -184,7 +184,15 @@ const tu = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
 const INIT = (tg && tg.initData) || '';
 const MY_NAME = tu ? [tu.first_name, tu.last_name].filter(Boolean).join(' ') : '';
 const MY_PHOTO = tu && tu.photo_url ? tu.photo_url : '';
-const NICK = tu ? (tu.username ? '@' + tu.username : MY_NAME) : '';
+const PROF_KEY = 'rsp_profile_' + (tu ? tu.id : 'guest');
+function loadProf() {
+  try { const o = JSON.parse(localStorage.getItem(PROF_KEY) || '{}'); return { name: o.name || '', phone: o.phone || '', email: o.email || '' }; }
+  catch (e) { return { name: '', phone: '', email: '' }; }
+}
+function saveProf(o) { try { localStorage.setItem(PROF_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
+const profile = loadProf();                              // Profil sozlamalari (shu qurilmada saqlanadi)
+const shownName = () => profile.name || MY_NAME;
+const nick = () => profile.name ? profile.name : (tu ? (tu.username ? '@' + tu.username : MY_NAME) : '');
 
 /* ---------- Yordamchilar ---------- */
 const DAYS = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
@@ -209,6 +217,8 @@ const state = {
   open: null,          // ochilgan o'yin (ro'yxat)
   form: null,          // ro'yxatdan o'tish formasi
   aform: null,         // admin: o'yin qo'shish/tahrirlash formasi
+  profView: null,      // profil: null | edit
+  pform: null,
   adminView: null,     // admin menyusi: null | games | players | stats | admins
   newAdmin: { uid: '', name: '' },
   week: 0
@@ -247,7 +257,7 @@ function applyState(s) {
   state.me = s.me; state.games = s.games; state.admins = s.admins || [];
   state.loaded = true; state.error = '';
 }
-const isEditing = () => !!(state.form || state.aform) ||
+const isEditing = () => !!(state.form || state.aform || state.pform) ||
   !!(document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName));
 async function refresh(silent) {
   try { applyState((await api('/api/state')).state); }
@@ -291,7 +301,7 @@ const LOGO = `<svg class="logo" viewBox="0 0 64 64" width="48" height="48" role=
 </svg>`;
 const avatarHtml = () => `<div class="avatar">${MY_PHOTO ? `<img src="${esc(MY_PHOTO)}">` : (MY_NAME ? esc(MY_NAME.charAt(0).toUpperCase()) : '👤')}</div>`;
 function topHtml() {
-  return `<div class="top">${LOGO}<div class="grow"><div class="league">Riga Street Power Liga</div>${NICK ? `<div class="sub">${esc(NICK)}</div>` : ''}</div></div>`;
+  return `<div class="top">${LOGO}<div class="grow"><div class="league">Riga Street Power Liga</div>${nick() ? `<div class="sub">${esc(nick())}</div>` : ''}</div></div>`;
 }
 function progress(g) {
   const pct = Math.min(100, g.used / g.capacity * 100);
@@ -487,12 +497,33 @@ function viewMine() {
 }
 
 function viewProfile() {
+  if (state.profView === 'edit') return viewProfileEdit();
   const role = isOwner() ? '<span class="tag ok">Asoschi</span>' : (isAdmin() ? '<span class="tag ok">Admin</span>' : '');
-  return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(MY_NAME || 'Foydalanuvchi')}</div>
+  // Adminlarga "yozilgan o'yinlar" ko'rsatilmaydi, faqat oddiy o'yinchilarga
+  const stats = isAdmin() ? '' : `<div class="stats" style="margin-bottom:16px"><div class="stat"><b>${state.games.filter(isReg).length}</b><small>Yozilgan o'yinlar</small></div>
+    <div class="stat"><b>${upcoming().filter(isReg).length}</b><small>Kutilayotgan</small></div></div>`;
+  const rows = li('✏️', `Mening ma'lumotlarim`, profile.name || profile.phone || profile.email ? [profile.name, profile.phone].filter(Boolean).join(' · ') : `Ism, telefon, email`, 'pedit') +
+    (tu ? li('🆔', 'Telegram ID', `${tu.id} · nusxalash uchun bosing`, 'copyid') : '');
+  return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(shownName() || 'Foydalanuvchi')}</div>
     <div class="g-sub">${tu && tu.username ? '@' + esc(tu.username) : `username yo'q`}</div>
     ${tu ? `<div class="g-sub">Telegram ID: <b>${tu.id}</b></div>` : ''}</div>${role}</div></div>
-    <div class="stats"><div class="stat"><b>${state.games.filter(isReg).length}</b><small>Yozilgan o'yinlar</small></div>
-    <div class="stat"><b>${upcoming().filter(isReg).length}</b><small>Kutilayotgan</small></div></div>`;
+    ${stats}<div class="sec-l">Sozlamalar</div><div class="menu">${rows}</div>`;
+}
+
+function viewProfileEdit() {
+  const f = state.pform;
+  return `<button class="back" data-a="pback">← Orqaga</button>
+    <div class="card"><div class="g-title">Mening ma'lumotlarim</div>
+      <div class="hint">Bu ma'lumotlar ro'yxatdan o'tish formasida avtomatik to'ldiriladi. Ular shu qurilmada saqlanadi.</div>
+      <div class="field-l">Ism</div>
+      <input type="text" data-pf="name" maxlength="40" placeholder="${esc(MY_NAME || 'Ismingiz')}" value="${esc(f.name)}">
+      <div class="field-l">Telefon raqam</div>
+      <input type="tel" data-pf="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">
+      <div class="field-l">Email</div>
+      <input type="email" data-pf="email" maxlength="80" placeholder="email@example.com" value="${esc(f.email)}">
+      <button class="btn" data-a="psave">Saqlash</button>
+      <button class="btn ghost" data-a="pclear">Tozalash</button>
+    </div>`;
 }
 
 /* Admin panel: menyu ro'yxati (har bir bo'lim alohida sahifa) */
@@ -640,6 +671,7 @@ document.addEventListener('input', e => {
     if (/^m\d$/.test(d.f)) state.form.members[+d.f.slice(1)] = e.target.value; else state.form[d.f] = e.target.value;
   } else if (d.af && state.aform) state.aform[d.af] = e.target.value;
   else if (d.na) state.newAdmin[d.na] = e.target.value;
+  else if (d.pf && state.pform) state.pform[d.pf] = e.target.value;
 });
 
 async function submitForm() {
@@ -690,9 +722,25 @@ document.addEventListener('click', async e => {
   const t = e.target.closest('[data-a]'); if (!t || t.disabled) return;
   const a = t.dataset.a, id = t.dataset.id;
   haptic();
-  if (a === 'tab') { state.tab = id; state.open = null; state.adminView = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
+  if (a === 'tab') { state.tab = id; state.open = null; state.adminView = null; state.profView = null; state.pform = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
   else if (a === 'open') { state.open = +id; if (state.tab === 'profile') state.tab = 'games'; render(); window.scrollTo(0, 0); }
   else if (a === 'back') { state.open = null; render(); }
+  else if (a === 'pedit') { state.profView = 'edit'; state.pform = { name: profile.name, phone: profile.phone, email: profile.email }; render(); window.scrollTo(0, 0); }
+  else if (a === 'pback') { state.profView = null; state.pform = null; render(); }
+  else if (a === 'psave') {
+    const f = state.pform, name = f.name.trim(), phone = f.phone.trim(), email = f.email.trim();
+    if (name && name.length < 2) return toast('Ism juda qisqa');
+    if (phone && !okPhone(phone)) return toast(`Telefon raqamni to'g'ri kiriting`);
+    if (email && !okEmail(email)) return toast(`Email manzilni to'g'ri kiriting`);
+    Object.assign(profile, { name, phone, email });
+    if (!saveProf(profile)) return toast(`Saqlab bo'lmadi`);
+    state.profView = null; state.pform = null; render(); toast('Saqlandi ✅');
+  }
+  else if (a === 'pclear') { Object.assign(profile, { name: '', phone: '', email: '' }); saveProf(profile); state.pform = { name: '', phone: '', email: '' }; render(); toast('Tozalandi'); }
+  else if (a === 'copyid') {
+    const txt = String(tu.id);
+    try { navigator.clipboard.writeText(txt).then(() => toast('ID nusxalandi'), () => toast('ID: ' + txt)); } catch (e) { toast('ID: ' + txt); }
+  }
   else if (a === 'adm') { state.adminView = id; render(); window.scrollTo(0, 0); }
   else if (a === 'admback') { state.adminView = null; render(); window.scrollTo(0, 0); }
   else if (a === 'retry') { state.error = ''; render(); refresh(false); }
@@ -700,11 +748,11 @@ document.addEventListener('click', async e => {
   else if (a === 'wk') { state.week = Math.min(MAX_WEEKS, Math.max(0, state.week + +id)); render(); }
   else if (a === 'reg') {
     if (!state.me) return toast(`Telegram ichida oching, shunda ro'yxatdan o'tish mumkin`);
-    state.form = { gameId: +id, type: null, name: MY_NAME, phone: '', email: '', teamName: '', members: Array(TEAM_SIZE).fill(''), captain: 0 };
+    state.form = { gameId: +id, type: null, name: shownName(), phone: profile.phone, email: profile.email, teamName: '', members: Array(TEAM_SIZE).fill(''), captain: 0 };
     render(); window.scrollTo(0, 0);
   }
   else if (a === 'fback') { state.form = null; render(); }
-  else if (a === 'type') { state.form.type = id; if (id === 'team' && !state.form.members[0].trim()) state.form.members[0] = MY_NAME; render(); }
+  else if (a === 'type') { state.form.type = id; if (id === 'team' && !state.form.members[0].trim()) state.form.members[0] = shownName(); render(); }
   else if (a === 'cap') { state.form.captain = +id; render(); }
   else if (a === 'confirm') await submitForm();
   else if (a === 'cancel') { if (await act('/api/cancel', { gameId: +id }, `Ro'yxatdan chiqdingiz`)) render(); }
