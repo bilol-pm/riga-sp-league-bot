@@ -319,6 +319,8 @@ function topHtml() {
   return `<div class="top">${LOGO}<div class="grow"><div class="league">Riga Street Power Liga</div>${nick() ? `<div class="sub">${esc(nick())}</div>` : ''}</div></div>`;
 }
 function progress(g) {
+  // Oddiy o'yinchiga umumiy son va boshqalar ko'rsatilmaydi, faqat bo'sh joy
+  if (!isAdmin()) return `<div class="barrow" style="margin:10px 0 4px"><span>${freeOf(g) > 0 ? freeOf(g) + ` ta bo'sh joy` : `Joy qolmagan (navbatga yozilasiz)`}</span></div>`;
   const pct = Math.min(100, g.used / g.capacity * 100);
   return `<div class="bar"><i style="width:${pct}%"></i></div>
     <div class="barrow"><span>${g.used}/${g.capacity} o'yinchi</span><span>${g.waiting ? g.waiting + ' kishi navbatda' : freeOf(g) + ` ta bo'sh joy`}</span></div>`;
@@ -407,7 +409,7 @@ function viewGames() {
   </div>`;
   const more = `<h3>O'yin sanalari</h3><div class="card">${weekNav()}</div>` + (wg.length ? wg.map(g => {
     const d = new Date(g.ts);
-    const slots = g.ts <= Date.now() ? '' : `<div class="g-sub">${g.used}/${g.capacity} o'yinchi · ${freeOf(g)} ta bo'sh joy</div>`;
+    const slots = g.ts <= Date.now() ? '' : `<div class="g-sub">${isAdmin() ? `${g.used}/${g.capacity} o'yinchi · ` : ''}${freeOf(g)} ta bo'sh joy</div>`;
     return `<div class="card link" data-a="open" data-id="${g.id}"><div class="row">
       <div class="datebox"><b>${d.getDate()}</b><small>${MONTHS[d.getMonth()].slice(0, 3)}</small></div>
       <div class="grow"><div class="g-title">${DAYS[d.getDay()]}, ${fmtTime(g.ts)}</div>
@@ -436,16 +438,20 @@ function playerRow(p, i, adm) {
 /* O'yin ichi: ma'lumot + ro'yxat */
 function viewDetail() {
   const g = byId(state.open);
-  if (!g) { state.open = null; return state.tab === 'admin' ? viewAdmin() : viewGames(); }
+  if (!g) { state.open = null; return viewGames(); }
   const adm = isAdmin();
-  const rows = g.players.length ? g.players.map((p, i) => playerRow(p, i, adm)).join('') : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.<br>Birinchi bo'ling!</div>`;
+  // Oddiy o'yinchi faqat o'z yozuvini ko'radi; boshqalar ro'yxati faqat adminga
+  const mineP = myReg(g);
+  const rows = adm
+    ? (g.players.length ? g.players.map((p, i) => playerRow(p, i, true)).join('') : `<div class="empty"><div class="big">🙌</div>Hali hech kim yozilmagan.</div>`)
+    : (mineP ? whoHtml(mineP) : `<div class="g-sub">Siz hali bu o'yinga yozilmagansiz.</div>`);
   const ctrl = adm ? `<div class="btnrow">
       <button class="btn ghost sm" data-a="editgame" data-id="${g.id}">✏️ Tahrirlash</button>
       <button class="btn out sm" data-a="delgame" data-id="${g.id}">🗑 O'chirish</button></div>` : '';
   return `<button class="back" data-a="back">← Orqaga</button>
     <div class="card hero"><div class="label">O'yin</div><div class="title">${esc(g.title)}</div>
       ${metaHtml(g)}${progress(g)}${actionBtn(g)}${ctrl}</div>
-    <h3>Ro'yxat</h3><div class="card">${rows}</div>`;
+    <h3>${adm ? `Ro'yxat` : 'Mening yozuvim'}</h3><div class="card">${rows}</div>`;
 }
 
 /* Ro'yxatdan o'tish: avval jamoa/yakka tanlanadi, keyin forma */
@@ -513,6 +519,7 @@ function viewMine() {
 
 function viewProfile() {
   if (state.profView === 'edit') return viewProfileEdit();
+  const sub = adminSub(); if (sub) return sub;
   const role = isOwner() ? '<span class="tag ok">Asoschi</span>' : (isAdmin() ? '<span class="tag ok">Admin</span>' : '');
   // Adminlarga "yozilgan o'yinlar" ko'rsatilmaydi, faqat oddiy o'yinchilarga
   const stats = isAdmin() ? '' : `<div class="stats" style="margin-bottom:16px"><div class="stat"><b>${state.games.filter(isReg).length}</b><small>Yozilgan o'yinlar</small></div>
@@ -522,7 +529,7 @@ function viewProfile() {
   return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(shownName() || 'Foydalanuvchi')}</div>
     <div class="g-sub">${tu && tu.username ? '@' + esc(tu.username) : `username yo'q`}</div>
     ${tu ? `<div class="g-sub">Telegram ID: <b>${tu.id}</b></div>` : ''}</div>${role}</div></div>
-    ${stats}<div class="sec-l">Sozlamalar</div><div class="menu">${rows}</div>${myGamesHtml()}`;
+    ${stats}<div class="sec-l">Sozlamalar</div><div class="menu">${rows}</div>${isAdmin() ? adminMenu() : myGamesHtml()}`;
 }
 
 /* Profilda: men yozilgan barcha o'yinlar (yangisi tepada) */
@@ -537,15 +544,19 @@ function myGamesHtml() {
       <div class="grow"><div class="li-t">${DAYS[d.getDay()]}, ${fmtTime(x.ts)}</div><div class="li-s">📍 ${x.place ? esc(x.place) : `Joy e'lon qilinmagan`}</div></div>${tag}<div class="chev">›</div></div>`;
   }).join('') + `</div>`;
 }
+/* Mening yozuvim: jamoa/yakka, kapitan, o'yinchilar */
+function whoHtml(x) {
+  return x.kind === 'team'
+    ? `<div class="g-title">👥 ${esc(x.name)}</div><div class="g-sub">⭐ Kapitan: ${esc(x.members[x.captain] || '—')}</div><div class="g-sub">${esc(x.members.join(', '))}</div>`
+    : `<div class="g-title">🙋 ${esc(x.name)}</div><div class="g-sub">Yakka o'yinchi</div>`;
+}
 /* Eski (serverda endi ko'rinmaydigan) o'yin tafsiloti: sana, vaqt, joy va mening yozuvim */
 function viewHistGame() {
   const x = loadHist().find(h => h.id === state.open);
   if (!x) { state.open = null; return viewProfile(); }
   const past = x.ts <= Date.now();
   const tag = past ? `<span class="tag full">O'tgan</span>` : (x.waiting ? `<span class="tag wait">Navbatda</span>` : `<span class="tag ok">Yozildingiz</span>`);
-  const who = x.kind === 'team'
-    ? `<div class="g-title">👥 ${esc(x.name)}</div><div class="g-sub">⭐ Kapitan: ${esc(x.members[x.captain] || '—')}</div><div class="g-sub">${esc(x.members.join(', '))}</div>`
-    : `<div class="g-title">🙋 ${esc(x.name)}</div><div class="g-sub">Yakka o'yinchi</div>`;
+  const who = whoHtml(x);
   return `<button class="back" data-a="back">← Orqaga</button>
     <div class="card hero"><div class="label">O'yin</div><div class="title">${esc(x.title || "Futbol o'yini")}</div>${metaHtml(x)}<div>${tag}</div></div>
     <h3>Mening yozuvim</h3><div class="card">${who}</div>`;
@@ -573,13 +584,17 @@ const li = (ic, t, s, a, id) => `<div class="li" data-a="${a}" data-id="${id || 
 const admHead = t => `<button class="back" data-a="admback">← Orqaga</button><h3 style="margin-top:0">${t}</h3>`;
 const gameCount = (g, k) => g.players.filter(p => p.kind === k).length;
 
-function viewAdmin() {
-  if (!isAdmin()) return viewGames();
+/* Admin bo'limi profilning ichida: ichki sahifalar (null = menyu ko'rsatiladi) */
+function adminSub() {
+  if (!isAdmin()) return null;
   const v = state.adminView;
   if (v === 'games') return viewAdmGames();
   if (v === 'players') return viewAdmPlayers();
   if (v === 'stats') return viewAdmStats();
   if (v === 'admins' && isOwner()) return viewAdmAdmins();
+  return null;
+}
+function adminMenu() {
   const up = upcoming();
   const regs = up.reduce((a, g) => a + g.players.length, 0), people = up.reduce((a, g) => a + g.used, 0);
   const g1 = li('➕', `Yangi o'yin qo'shish`, 'Sana, vaqt, joy va sig\'im', 'newgame') +
@@ -588,7 +603,7 @@ function viewAdmin() {
     li('📊', 'Statistika', `Bo'sh joylar, jamoalar, navbat`, 'adm', 'stats');
   const g2 = isOwner() ? `<div class="sec-l">Boshqaruv</div><div class="menu">` +
     li('🛡', 'Adminlar', state.admins.length ? `${state.admins.length} ta admin` : `Faqat siz (asoschi)`, 'adm', 'admins') + `</div>` : '';
-  return topHtml() + `<div class="sec-l">O'yinlar</div><div class="menu">${g1}</div>${g2}`;
+  return `<div class="sec-l">Admin</div><div class="menu">${g1}</div>${g2}`;
 }
 
 function viewAdmGames() {
@@ -666,7 +681,7 @@ function viewAdminForm() {
 }
 
 function render() {
-  if (state.tab === 'admin' && !isAdmin()) state.tab = 'games';
+  if (state.tab === 'admin') state.tab = 'profile';
   let html;
   if (!state.loaded) html = viewBoot();
   else if (state.aform) html = viewAdminForm();
@@ -674,10 +689,9 @@ function render() {
   else if (state.tab === 'games') html = state.open ? viewDetail() : viewGames();
   else if (state.tab === 'mine') html = state.open ? viewDetail() : viewMine();
   else if (state.tab === 'profile') html = state.open ? (byId(state.open) ? viewDetail() : viewHistGame()) : viewProfile();
-  else html = state.open ? viewDetail() : viewAdmin();
+  else html = viewProfile();
   $app.innerHTML = html;
   const tabs = [['games', '⚽', 'Asosiy'], ['mine', '📝', 'Yozilganlar'], ['profile', '👤', 'Profil']];
-  if (isAdmin()) tabs.push(['admin', '🛠', 'Admin']);
   $nav.innerHTML = tabs.map(t => `<button data-a="tab" data-id="${t[0]}" class="${state.tab === t[0] ? 'on' : ''}"><span>${t[1]}</span>${t[2]}</button>`).join('');
   tick();
 }
@@ -764,7 +778,7 @@ document.addEventListener('click', async e => {
   const a = t.dataset.a, id = t.dataset.id;
   haptic();
   if (a === 'tab') { state.tab = id; state.open = null; state.adminView = null; state.profView = null; state.pform = null; state.form = null; state.aform = null; render(); window.scrollTo(0, 0); }
-  else if (a === 'open') { state.open = +id; if (state.tab === 'profile') state.tab = 'games'; render(); window.scrollTo(0, 0); }
+  else if (a === 'open') { state.open = +id; render(); window.scrollTo(0, 0); }
   else if (a === 'back') { state.open = null; render(); }
   else if (a === 'pgame') { state.open = +id; render(); window.scrollTo(0, 0); }
   else if (a === 'pedit') { state.profView = 'edit'; state.pform = { name: profile.name, phone: profile.phone, email: profile.email }; render(); window.scrollTo(0, 0); }

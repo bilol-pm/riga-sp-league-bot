@@ -206,7 +206,8 @@ async function buildState(env, me) {
       capacity: g.capacity,
       used,
       waiting,
-      players,
+      // Oddiy o'yinchi boshqalarni ko'rmaydi: faqat o'z yozuvi. To'liq ro'yxat faqat adminlarga.
+      players: isAdmin ? players : players.filter((p) => p.mine),
     };
   });
 
