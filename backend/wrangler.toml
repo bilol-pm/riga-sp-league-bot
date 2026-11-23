@@ -1,0 +1,17 @@
+# Cloudflare Wrangler sozlamasi (ixtiyoriy: faqat `wrangler deploy` ishlatsangiz kerak).
+# Agar kodni Cloudflare panelida qo'lda qo'yayotgan bo'lsangiz, bu fayl kerak emas.
+name = "riga-sp-api"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+OWNER_IDS = "5310968084"
+ALLOWED_ORIGIN = "https://bilol-pm.github.io"
+
+# D1 bazani panelda yaratgan bo'lsangiz, uning ID sini shu yerga yozing:
+[[d1_databases]]
+binding = "DB"
+database_name = "riga-sp-league"
+database_id = "BU_YERGA_D1_ID_NI_YOZING"
+
+# BOT_TOKEN ni bu faylga YOZMANG. Maxfiy kalit: `wrangler secret put BOT_TOKEN`

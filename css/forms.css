@@ -1,0 +1,23 @@
+/* Formalar: kiritish maydonlari, tanlov kartochkalari, jamoa a'zolari qatorlari. */
+
+/* forma */
+input[type=text],input[type=tel],input[type=email],input[type=url],input[type=number],input[type=date],input[type=time]{
+  width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);
+  font:inherit;font-size:16px;outline:none;color-scheme:dark;min-width:0}
+input:focus{border-color:var(--blue)}
+.field-l{font-size:12px;color:var(--muted);margin:14px 0 6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.note{font-size:13px;color:#fbbf24;background:#f59e0b14;border:1px solid #f59e0b44;border-radius:10px;padding:8px 10px;margin:0 0 12px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
+.opt .ic{font-size:26px;display:block;margin-bottom:6px}
+.opt b{display:block;font-size:14px}
+.opt small{color:var(--muted);font-size:12px}
+.opt.on{border-color:var(--blue);background:#52222f}
+.mrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.mrow input{flex:1;min-width:0}
+.capbtn{flex:none;width:48px;height:48px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-size:18px;opacity:.45}
+.capbtn.on{opacity:1;background:#3d3210;border-color:#f59e0b99}
+.hint{font-size:12px;color:var(--muted);margin:6px 0 4px}
+.adm-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.adm-row:last-child{border-bottom:0}

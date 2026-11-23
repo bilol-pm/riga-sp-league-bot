@@ -1,0 +1,14 @@
+/* Asos: ranglar (o'zgaruvchilar), umumiy qoidalar, sahifa maketi. */
+
+:root{
+  --bg:#15171e; --card:#1d2029; --card2:#262a36; --line:#343947;
+  --text:#f4f1f2; --muted:#9ea2b1; --blue:#dc4a5f; --blue2:#b8263f;
+  --green:#22c55e; --amber:#f59e0b; --red:#ef4444;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body{min-height:100vh;display:flex;justify-content:center;align-items:flex-start;
+  background:radial-gradient(900px 500px at 50% -10%,#3d1d29 0%,var(--bg) 60%)}
+#app{width:100%;max-width:480px;min-height:100vh;min-height:100dvh;padding:14px 14px 100px}
+button{font:inherit;color:inherit;border:0;cursor:pointer}

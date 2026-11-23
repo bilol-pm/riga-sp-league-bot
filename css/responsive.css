@@ -1,0 +1,16 @@
+/* Kichik telefonlar (360px va undan tor) uchun moslashtirish. */
+
+/* kichik telefonlar */
+@media (max-width:360px){
+  #app{padding:12px 10px 96px}
+  .title{font-size:18px}
+  .league{font-size:18px}
+  .count b{font-size:17px}
+  .btn{font-size:15px;padding:13px}
+  nav button{font-size:10px}
+  nav button span{font-size:18px}
+  .datebox{width:46px}
+  .cal-d{font-size:13px}
+  .opt{padding:12px 6px}
+  .stats3 .stat b{font-size:19px}
+}
