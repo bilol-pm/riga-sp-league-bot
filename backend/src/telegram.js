@@ -23,10 +23,10 @@ const WELCOME = [
 const BUTTON = "⚽ O'yinlar · Games · Игры · Spēles";   // inline tugma (hamma tilda)
 const MENU_BUTTON = "⚽ O'yinlar";                     // chap pastdagi menyu tugmasi
 
-const webAppUrl = (env) => String(env.WEBAPP_URL || DEFAULT_WEBAPP_URL);
+export const webAppUrl = (env) => String(env.WEBAPP_URL || DEFAULT_WEBAPP_URL);
 
 // Telegram Bot API ga so'rov
-async function tgCall(env, method, body) {
+export async function tgCall(env, method, body) {
   const r = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/${method}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

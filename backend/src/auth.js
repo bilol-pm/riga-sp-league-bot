@@ -47,6 +47,7 @@ export async function getMe(req, env) {
     id: user.id,
     name: str([user.first_name, user.last_name].filter(Boolean).join(' '), 80),
     username: str(user.username || '', 40),
+    tgLang: str(user.language_code || '', 10),   // Telegram tili (xabar tilini tanlash uchun)
     role,
   };
 }

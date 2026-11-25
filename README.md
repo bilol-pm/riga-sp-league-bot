@@ -80,9 +80,11 @@ riga-sp-league-bot/
 │   │   ├── config.js       O'zgarmaslar (jamoa hajmi va h.k.)
 │   │   ├── http.js         Xato sinfi, JSON javob, CORS, so'rovni o'qish
 │   │   ├── utils.js        Matn tozalash, son o'qish
-│   │   ├── db.js           Jadvallarni yaratish (games, registrations, admins)
+│   │   ├── db.js           Jadvallarni yaratish va eski bazaga yangi ustun qo'shish (games, registrations, admins)
 │   │   ├── auth.js         Telegram imzosini tekshirish, rollar
-│   │   ├── state.js        Holatni yig'ish; navbat va maxfiylik shu yerda
+│   │   ├── state.js        Holatni yig'ish; maxfiylik shu yerda
+│   │   ├── queue.js        Navbat hisobi: kim ro'yxatda, kim kutmoqda
+│   │   ├── notify.js       O'yinchiga xabarlar: tasdiq va 24 soat oldin eslatma (matnlar 4 tilda)
 │   │   ├── telegram.js     Bot: /start ga javob (webhook) va bir martalik sozlash
 │   │   └── routes/
 │   │       ├── index.js    Manzillar jadvali (manzil → funksiya)
@@ -115,6 +117,7 @@ riga-sp-league-bot/
 | Admin menyusi | `js/views/admin.js` |
 | Server tekshiruvlari (telefon, email) | `backend/src/routes/player.js` |
 | Kim nimani ko'ra oladi | `backend/src/state.js` |
+| Tasdiq / eslatma xabari matni, eslatma vaqti | matn: `backend/src/notify.js` (`MSG`), vaqt: `backend/src/config.js` (`REMIND_BEFORE_MS`) |
 | Yangi API manzil | `backend/src/routes/` ga funksiya + `routes/index.js` ga qator |
 
 ## Qanday ishga tushiriladi
@@ -159,6 +162,20 @@ Javob BITTA xabar: o'zbekcha, inglizcha, ruscha va latishcha matn ketma-ket (`ba
 **`bot.py` haqida:** u eski variant (kompyuterda ishlaydi, `getUpdates` bilan). Webhook o'rnatilgandan keyin
 uni ishga tushirmang: Telegram bir vaqtda ikkala usulni ruxsat bermaydi (`Conflict` xatosi chiqadi).
 Faqat webhook'ni o'chirib, mahalliy sinash uchun kerak bo'ladi.
+
+### 4. Eslatmalar (Cron Trigger): bir marta sozlanadi
+Bot o'yinchiga ikki xil xabar yuboradi (bot bilan chatiga):
+- **Ro'yxatdan o'tishi bilan:** qaysi sana va soatga yozilgani (navbatda bo'lsa, boshqa matn).
+- **O'yindan roppa-rosa 24 soat oldin:** "siz futbolga yozilgansiz, kechikmasdan keling" eslatmasi.
+
+Tasdiq xabari o'zi ketadi. Eslatma uchun Cloudflare vaqti-vaqti bilan serverni uyg'otishi kerak:
+1. Cloudflare → Workers → `riga-sp-api` → **Settings** → **Triggers** → **Cron Triggers** → **Add**.
+2. Cron: `*/5 * * * *` (har 5 daqiqada) → **Add**.
+
+Qoidalar: xabar odam yozilganda ilovada tanlagan tilida ketadi; sana va soat Riga vaqti bilan; navbatdagilarga
+eslatma yuborilmaydi (ular ro'yxatga o'tgach oladi); ro'yxatdan chiqqan odamga ketmaydi; o'yin vaqti o'zgarsa,
+eslatma yangi vaqtga qarab qayta yuboriladi; o'yinga 24 soatdan kam qolganda yozilganga faqat tasdiq xabari ketadi.
+Botni bloklagan yoki bot bilan hech qachon gaplashmagan odamga xabar bormaydi (bu xato emas, o'tkazib yuboriladi).
 
 ## Muhim qoidalar (biznes mantiq)
 

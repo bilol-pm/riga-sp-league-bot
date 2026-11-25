@@ -21,12 +21,15 @@ export async function saveGame(env, me, b) {
     // tahrirlash
     const id = int(b.id);
     if (!Number.isInteger(id)) throw new HttpError(400, "O'yin tanlanmagan");
+    const old = await env.DB.prepare('SELECT ts FROM games WHERE id = ?').bind(id).first();
     const r = await env.DB.prepare(
       'UPDATE games SET ts = ?, title = ?, place = ?, map_url = ?, capacity = ? WHERE id = ?'
     )
       .bind(ts, title, place, mapUrl, capacity, id)
       .run();
     if (!r.meta || !r.meta.changes) throw new HttpError(404, "O'yin topilmadi");
+    // O'yin vaqti o'zgarsa, eslatma yangi vaqtga qarab qayta yuboriladi
+    if (old && old.ts !== ts) await env.DB.prepare('UPDATE registrations SET reminded = 0 WHERE game_id = ?').bind(id).run();
   } else {
     // yangi o'yin
     await env.DB.prepare(

@@ -1,10 +1,11 @@
 /** Futbolchi amallari: o'yinga yozilish va chiqish. */
-import { TEAM_SIZE } from '../config.js';
+import { REMIND_BEFORE_MS, TEAM_SIZE } from '../config.js';
 import { HttpError } from '../http.js';
 import { needLogin } from '../auth.js';
+import { notifyRegistered, pickLang } from '../notify.js';
 import { int, str } from '../utils.js';
 
-export async function register(env, me, b) {
+export async function register(env, me, b, ctx) {
   needLogin(me);
   const gameId = int(b.gameId);
   if (!Number.isInteger(gameId)) throw new HttpError(400, "O'yin tanlanmagan");
@@ -39,13 +40,18 @@ export async function register(env, me, b) {
     name = str(b.teamName, 40) || 'Jamoa';
   }
 
+  // Til: mijoz yuborgan (ilovada tanlangan), bo'lmasa Telegram tili. Keyingi xabarlar shu tilda ketadi.
+  const lang = pickLang(b.lang, me.tgLang);
+  // O'yinga 24 soatdan kam qolgan bo'lsa, tasdiq xabarining o'zi yetarli: eslatma alohida yuborilmaydi
+  const reminded = g.ts - Date.now() <= REMIND_BEFORE_MS ? 1 : 0;
+
   try {
     await env.DB.prepare(
       `INSERT INTO registrations
-         (game_id, uid, tg_username, kind, name, members, captain, phone, email, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         (game_id, uid, tg_username, kind, name, members, captain, phone, email, created_at, lang, reminded)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
-      .bind(g.id, me.id, me.username, kind, name, JSON.stringify(members), captain, phone, email, Date.now())
+      .bind(g.id, me.id, me.username, kind, name, JSON.stringify(members), captain, phone, email, Date.now(), lang, reminded)
       .run();
   } catch (e) {
     if (/UNIQUE/i.test(String((e && e.message) || e))) {
@@ -53,6 +59,10 @@ export async function register(env, me, b) {
     }
     throw e;
   }
+
+  // Tasdiq xabari botdan chatga yuboriladi. Javobni kutdirmaymiz; xato bo'lsa ro'yxatdan o'tish bekor bo'lmaydi.
+  const task = notifyRegistered(env, g, me.id, lang).catch((e) => console.error(e));
+  if (ctx && ctx.waitUntil) ctx.waitUntil(task);
 }
 
 export async function cancel(env, me, b) {

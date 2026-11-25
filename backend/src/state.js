@@ -11,7 +11,7 @@
  */
 import { HISTORY_DAYS, TEAM_SIZE } from './config.js';
 import { isAdminRole } from './auth.js';
-import { safeJson } from './utils.js';
+import { seatRegs } from './queue.js';
 
 export async function buildState(env, me) {
   const isAdmin = isAdminRole(me);
@@ -35,17 +35,8 @@ export async function buildState(env, me) {
   }
 
   const out = games.map((g) => {
-    let used = 0;
-    let waiting = 0;
-    const players = (byGame.get(g.id) || []).map((r) => {
-      const members = safeJson(r.members, []);
-      const size = r.kind === 'team' ? members.length : 1;
-      let wait = false;
-      if (used + size <= g.capacity) used += size;
-      else {
-        wait = true;
-        waiting += size;
-      }
+    const { rows, used, waiting } = seatRegs(byGame.get(g.id) || [], g.capacity);
+    const players = rows.map(({ r, members, wait }) => {
       const mine = !!me && r.uid === me.id;
       const p = { id: r.id, kind: r.kind, name: r.name, members, captain: r.captain, waiting: wait, mine };
       if (isAdmin || mine) {

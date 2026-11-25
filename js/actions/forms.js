@@ -7,11 +7,11 @@ async function submitForm() {
     if (f.name.trim().length < 2) return toast(t("Ismingizni kiriting"));
     if (!okPhone(f.phone)) return toast(t("Telefon raqamni to'g'ri kiriting"));
     if (!okEmail(f.email)) return toast(t("Email manzilni to'g'ri kiriting"));
-    body = { gameId: f.gameId, kind: 'solo', name: f.name, phone: f.phone, email: f.email };
+    body = { lang: LANG, gameId: f.gameId, kind: 'solo', name: f.name, phone: f.phone, email: f.email };
   } else if (f.type === 'team') {
     if (f.members.some(s => s.trim().length < 2)) return toast(t("{n} ta o'yinchining hammasini kiriting", { n: TEAM_SIZE }));
     if (!okPhone(f.phone)) return toast(t("Kapitanning telefon raqamini kiriting"));
-    body = { gameId: f.gameId, kind: 'team', teamName: f.teamName, members: f.members, captain: f.captain, phone: f.phone };
+    body = { lang: LANG, gameId: f.gameId, kind: 'team', teamName: f.teamName, members: f.members, captain: f.captain, phone: f.phone };
   } else return toast(t("Avval tanlang: jamoa yoki yakka"));
   if (!(await act('/api/register', body))) return;
   const g = byId(f.gameId), wait = g && statusOf(g) === 'wait';

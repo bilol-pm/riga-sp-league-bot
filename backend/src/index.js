@@ -9,6 +9,7 @@
  *   ALLOWED_ORIGIN  Mini App joylashgan sayt: https://bilol-pm.github.io
  *   WEBHOOK_SECRET  /start javobi (Telegram webhook) uchun maxfiy so'z, Secret sifatida
  *   WEBAPP_URL      ixtiyoriy: Mini App manzili (berilmasa config.js dagi ishlatiladi)
+ *   Cron Trigger    har 5 daqiqada ishlaydi (README'ga qarang): o'yinga 24 soat qolganda eslatma yuboradi
  */
 import { HttpError, corsHeaders, json, readBody } from './http.js';
 import { ensureSchema } from './db.js';
@@ -16,9 +17,10 @@ import { getMe } from './auth.js';
 import { buildState } from './state.js';
 import { ROUTES } from './routes/index.js';
 import { handleTelegram } from './telegram.js';
+import { sendReminders } from './notify.js';
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const ch = corsHeaders(env, req);
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: ch });
     try {
@@ -44,12 +46,18 @@ export default {
 
       const handler = ROUTES[path];
       if (!handler || req.method !== 'POST') throw new HttpError(404, 'Topilmadi');
-      await handler(env, me, await readBody(req));
+      await handler(env, me, await readBody(req), ctx);
       return json({ ok: true, state: await buildState(env, me) }, 200, ch);
     } catch (e) {
       if (e instanceof HttpError) return json({ ok: false, error: e.message }, e.status, ch);
       console.error(e);
       return json({ ok: false, error: "Server xatosi. Birozdan keyin urinib ko'ring." }, 500, ch);
     }
+  },
+
+  // Cloudflare Cron Trigger shu yerga keladi (Settings -> Triggers -> Cron Triggers)
+  async scheduled(event, env, ctx) {
+    if (!env.DB || !env.BOT_TOKEN) return;
+    ctx.waitUntil(sendReminders(env).catch((e) => console.error(e)));
   },
 };
