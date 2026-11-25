@@ -1,14 +1,15 @@
-/* Tillar (uz / en / ru): tanlangan tilni aniqlash, t() tarjima funksiyasi, serverdan kelgan xatolarni tarjima qilish.
+/* Tillar (uz / en / ru / lv): tanlangan tilni aniqlash, t() tarjima funksiyasi, serverdan kelgan xatolarni tarjima qilish.
    Tarjima matnlari js/i18n/locales/ papkasida. Kalit sifatida O'ZBEKCHA matn ishlatiladi. */
 
-const LANGS = [['uz', "O'zbekcha", 'UZ'], ['en', 'English', 'EN'], ['ru', 'Русский', 'RU']];
+const LANGS = [['uz', "O'zbekcha", 'UZ'], ['en', 'English', 'EN'], ['ru', 'Русский', 'RU'], ['lv', 'Latviešu', 'LV']];
 const LANG_KEY = 'rsp_lang';
-const I18N = { en: LOCALE_EN, ru: LOCALE_RU };
+const I18N = { en: LOCALE_EN, ru: LOCALE_RU, lv: LOCALE_LV };
 function initLang() {
   try { const v = localStorage.getItem(LANG_KEY); if (LANGS.some(l => l[0] === v)) return v; } catch (e) {}
   const c = String((tu && tu.language_code) || navigator.language || '').toLowerCase();
   if (c.startsWith('uz')) return 'uz';
   if (c.startsWith('ru')) return 'ru';
+  if (c.startsWith('lv')) return 'lv';
   return c ? 'en' : 'uz';
 }
 let LANG = initLang();

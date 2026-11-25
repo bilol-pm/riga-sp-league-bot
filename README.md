@@ -2,12 +2,12 @@
 
 Rigadagi amatyor futbolchilar uchun Telegram bot va Mini App. O'yinchi bot orqali ilovani ochadi,
 o'yinga yakka yoki jamoa bilan yoziladi. Adminlar o'yin qo'shadi va ro'yxatni ko'radi.
-Ilova uch tilda ishlaydi: o'zbekcha, inglizcha, ruscha.
+Ilova to'rt tilda ishlaydi: o'zbekcha, inglizcha, ruscha, latishcha.
 
 ## Loyiha qanday ishlaydi (3 qism)
 
 ```
-  Telegram bot (bot.py)  ──/start──►  "O'yinlarni ochish" tugmasi
+  Telegram ──/start──► Backend (backend/, webhook) ──► "O'yinlar" tugmasi
                                             │
                                             ▼
   Frontend (index.html, css/, js/)  ◄──► Backend (backend/)  ◄──► D1 baza (SQLite)
@@ -18,7 +18,7 @@ Ilova uch tilda ishlaydi: o'zbekcha, inglizcha, ruscha.
 |---|---|---|
 | **Frontend** (`index.html`, `css/`, `js/`, `assets/`) | Ilovaning ko'rinishi va ishlashi (Mini App) | GitHub Pages |
 | **Backend** (`backend/`) | API: kim kirganini tekshiradi, o'yinlar va yozuvlarni saqlaydi | Cloudflare Worker + D1 baza |
-| **Bot** (`bot.py`) | `/start` bosilganda Mini App'ni ochadigan tugma yuboradi | Kompyuter/server (Python) |
+| **Bot** (`backend/src/telegram.js`) | `/start` bosilganda Mini App'ni ochadigan tugma yuboradi. Backend ichida, shuning uchun 24/7 ishlaydi | Cloudflare Worker (webhook) |
 
 Frontend serverga `js/api.js` orqali murojaat qiladi. Server har so'rovda Telegram imzosini (`initData`)
 tekshiradi, shuning uchun boshqa odam nomidan yozib bo'lmaydi.
@@ -51,8 +51,9 @@ riga-sp-league-bot/
 │   ├── i18n/
 │   │   ├── locales/en.js   Inglizcha tarjimalar
 │   │   ├── locales/ru.js   Ruscha tarjimalar
+│   │   ├── locales/lv.js   Latishcha tarjimalar
 │   │   ├── i18n.js         Tilni tanlash va t() funksiyasi
-│   │   └── dates.js        Sana/oy/hafta kunlari uch tilda
+│   │   └── dates.js        Sana/oy/hafta kunlari to'rt tilda
 │   ├── utils.js            Kichik yordamchilar (esc, sana, telefon tekshirish)
 │   ├── storage.js          localStorage: profil va yozilgan o'yinlar tarixi
 │   ├── state.js            Ilovaning yagona holati (state) va rol yordamchilari
@@ -82,6 +83,7 @@ riga-sp-league-bot/
 │   │   ├── db.js           Jadvallarni yaratish (games, registrations, admins)
 │   │   ├── auth.js         Telegram imzosini tekshirish, rollar
 │   │   ├── state.js        Holatni yig'ish; navbat va maxfiylik shu yerda
+│   │   ├── telegram.js     Bot: /start ga javob (webhook) va bir martalik sozlash
 │   │   └── routes/
 │   │       ├── index.js    Manzillar jadvali (manzil → funksiya)
 │   │       ├── player.js   Yozilish va chiqish
@@ -92,7 +94,7 @@ riga-sp-league-bot/
 │   ├── wrangler.toml       Ixtiyoriy: wrangler orqali deploy qilish uchun
 │   └── package.json
 ├── scripts/bump-version.mjs  CSS/JS keshini yangilash uchun versiya raqamini oshiradi
-├── bot.py                  Telegram bot (/start)
+├── bot.py                  ESKI variant: kompyuterda ishlaydigan bot (faqat sinash uchun, pastga qarang)
 ├── requirements.txt        bot.py uchun Python paketlari
 ├── .env.example            bot.py sozlamalari namunasi (.env ga nusxalang)
 └── README.md
@@ -105,7 +107,7 @@ riga-sp-league-bot/
 | Server manzilini almashtirish | `js/config.js` (`API_BASE`) |
 | Jamoadagi o'yinchilar soni | `js/config.js` va `backend/src/config.js` (`TEAM_SIZE`, ikkalasida bir xil bo'lsin) |
 | Ranglar | `css/base.css` (yuqoridagi `--bg`, `--blue` va h.k.) |
-| Matn yoki tarjima | `js/i18n/locales/en.js`, `ru.js` (kalit, ya'ni o'zbekcha matn, kod ichida `t("...")` da) |
+| Matn yoki tarjima | `js/i18n/locales/en.js`, `ru.js`, `lv.js` (kalit, ya'ni o'zbekcha matn, kod ichida `t("...")` da) |
 | Yangi til qo'shish | yangi `locales/xx.js` + `i18n.js` dagi `LANGS`, `I18N` va `dates.js` |
 | "Asosiy" sahifa ko'rinishi | `js/views/games.js` |
 | Ro'yxatdan o'tish formasi | `js/views/form.js` (ko'rinishi), `js/actions/forms.js` (tekshirish) |
@@ -132,7 +134,8 @@ Telegram'da ko'rish: ⋮ → Reload Page (GitHub Pages 1–3 daqiqa kechikishi m
 
 ### 2. Backend (Cloudflare)
 Cloudflare'da (bir marta sozlanadi): D1 baza `riga-sp-league` → Worker'ga `DB` nomi bilan ulanadi;
-o'zgaruvchilar: `BOT_TOKEN` (Secret), `OWNER_IDS` (asoschi Telegram ID si), `ALLOWED_ORIGIN` (`https://bilol-pm.github.io`).
+o'zgaruvchilar: `BOT_TOKEN` (Secret), `OWNER_IDS` (asoschi Telegram ID si), `ALLOWED_ORIGIN` (`https://bilol-pm.github.io`),
+`WEBHOOK_SECRET` (Secret, o'zingiz o'ylab topgan uzun matn: faqat harf, raqam, `_`, `-`).
 
 Kodni o'zgartirgandan keyin:
 ```
@@ -143,12 +146,19 @@ Chiqqan `backend/dist/worker.js` faylining hammasini Cloudflare → Workers → 
 nusxalab qo'yib, **Deploy** bosiladi. (Node.js 18+ kerak; hech narsa o'rnatish shart emas.)
 Tekshirish: `https://riga-sp-api.bilolpm111.workers.dev/` da `"ready": true` chiqishi kerak.
 
-### 3. Bot
-```
-pip install -r requirements.txt
-copy .env.example .env      (Windows)   yoki   cp .env.example .env
-```
-`.env` ga `BOT_TOKEN` va `WEBAPP_URL` ni yozib: `python bot.py`
+### 3. Bot (/start javobi): bir marta sozlanadi
+`/start` ga javobni backend beradi, kompyuterda hech narsa ishlab turishi shart emas.
+1. Cloudflare'ga `WEBHOOK_SECRET` ni qo'shing va backend'ni Deploy qiling (yuqoridagi 2-qadam).
+2. Brauzerda bir marta oching (Telegram'ga webhook va menyu tugmasini o'rnatadi):
+   `https://riga-sp-api.bilolpm111.workers.dev/telegram/setup?secret=SIZNING_WEBHOOK_SECRET`
+   Javobda `"ok":true` chiqishi kerak.
+3. Botga `/start` yozib tekshiring.
+
+Javob BITTA xabar: o'zbekcha, inglizcha, ruscha va latishcha matn ketma-ket (`backend/src/telegram.js` dagi `WELCOME`), tagida bitta tugma (`BUTTON`).
+
+**`bot.py` haqida:** u eski variant (kompyuterda ishlaydi, `getUpdates` bilan). Webhook o'rnatilgandan keyin
+uni ishga tushirmang: Telegram bir vaqtda ikkala usulni ruxsat bermaydi (`Conflict` xatosi chiqadi).
+Faqat webhook'ni o'chirib, mahalliy sinash uchun kerak bo'ladi.
 
 ## Muhim qoidalar (biznes mantiq)
 

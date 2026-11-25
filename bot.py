@@ -1,3 +1,6 @@
+# DIQQAT: bu ESKI variant. Hozir /start ga javobni Cloudflare backend'i beradi (backend/src/telegram.js),
+# shuning uchun bu faylni ishga tushirish shart emas. Backend webhook'i yoqilgan bo'lsa, bot.py ishlamaydi
+# (Telegram: "Conflict: can't use getUpdates while webhook is active"). Faqat mahalliy sinash uchun saqlangan.
 import asyncio
 import logging
 import os

@@ -9,3 +9,4 @@ export const HISTORY_DAYS = 8;                 // o'tgan o'yinlar necha kun ko'r
 export const MAX_BODY_BYTES = 20000;           // so'rov hajmi chegarasi
 export const DEFAULT_TITLE = "Futbol o'yini";  // admin sarlavha yozmasa
 export const DEFAULT_ORIGIN = 'https://bilol-pm.github.io';   // ALLOWED_ORIGIN berilmasa
+export const DEFAULT_WEBAPP_URL = 'https://bilol-pm.github.io/riga-sp-league-bot/';   // Mini App manzili (WEBAPP_URL berilmasa)
