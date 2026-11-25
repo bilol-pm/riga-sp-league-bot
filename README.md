@@ -85,6 +85,7 @@ riga-sp-league-bot/
 │   │   ├── state.js        Holatni yig'ish; maxfiylik shu yerda
 │   │   ├── queue.js        Navbat hisobi: kim ro'yxatda, kim kutmoqda
 │   │   ├── notify.js       O'yinchiga xabarlar: tasdiq va 24 soat oldin eslatma (matnlar 4 tilda)
+│   │   ├── rules.js        O'yin qoidalari matni: eslatma xabarining oxiriga qo'shiladi (hozircha bo'sh)
 │   │   ├── telegram.js     Bot: /start ga javob (webhook) va bir martalik sozlash
 │   │   └── routes/
 │   │       ├── index.js    Manzillar jadvali (manzil → funksiya)
@@ -117,6 +118,7 @@ riga-sp-league-bot/
 | Admin menyusi | `js/views/admin.js` |
 | Server tekshiruvlari (telefon, email) | `backend/src/routes/player.js` |
 | Kim nimani ko'ra oladi | `backend/src/state.js` |
+| O'yin qoidalari (eslatmada ko'rinadi) | `backend/src/rules.js` (har til uchun alohida matn) |
 | Tasdiq / eslatma xabari matni, eslatma vaqti | matn: `backend/src/notify.js` (`MSG`), vaqt: `backend/src/config.js` (`REMIND_BEFORE_MS`) |
 | Yangi API manzil | `backend/src/routes/` ga funksiya + `routes/index.js` ga qator |
 

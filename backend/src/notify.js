@@ -10,6 +10,7 @@
 import { DEFAULT_TITLE, REMIND_BATCH, REMIND_BEFORE_MS, TIMEZONE } from './config.js';
 import { ensureSchema } from './db.js';
 import { seatRegs } from './queue.js';
+import { GAME_RULES } from './rules.js';
 import { tgCall, webAppUrl } from './telegram.js';
 
 const LANG_CODES = ['uz', 'en', 'ru', 'lv'];
@@ -44,7 +45,14 @@ const MSG = {
     game: "Futbol o'yini",
     in: { head: "✅ Ro'yxatdan o'tdingiz!", foot: "Iltimos, kechikmasdan keling. Ko'rishguncha! 👋" },
     wait: { head: '⏳ Siz navbat ro\'yxatidasiz', foot: "Hozircha joy yetarli emas. Joy bo'shasa, ro'yxatga o'tasiz. Holatni ilovada ko'rishingiz mumkin." },
-    remind: { head: '⏰ Eslatma: siz futbolga yozilgansiz!', foot: "Iltimos, kechikmasdan keling va o'yinni o'tkazib yubormang! 🙌\nKela olmasangiz, ilovada ro'yxatdan chiqing: boshqa o'yinchiga joy bo'shaydi." },
+    remind: {
+      head: "⏰ Futbol o'yini eslatmasi",
+      greet: '👋 Assalomu alaykum!',
+      intro: "Eslatib o'tamiz: siz futbol o'yiniga yozilgansiz. O'yin haqida ma'lumot:",
+      foot: "Iltimos, kechikmasdan keling va o'yinni o'tkazib yubormang! 🙌\nKela olmasangiz, ilovada ro'yxatdan chiqing: boshqa o'yinchiga joy bo'shaydi.",
+    },
+    label: { game: "⚽ O'yin", date: '📅 Kun', time: '🕗 Soat', place: '📍 Joy' },
+    rules: "📋 O'yin qoidalari",
     open: '📋 Ilovani ochish',
     map: "📍 Xaritada ko'rish",
   },
@@ -52,7 +60,14 @@ const MSG = {
     game: 'Football game',
     in: { head: "✅ You're registered!", foot: 'Please arrive on time. See you there! 👋' },
     wait: { head: "⏳ You're on the waiting list", foot: "There aren't enough spots right now. If a spot opens up, you'll move onto the list. You can check your status in the app." },
-    remind: { head: "⏰ Reminder: you're signed up for football!", foot: "Please don't be late and don't miss the game! 🙌\nIf you can't make it, cancel your registration in the app so someone else can take your spot." },
+    remind: {
+      head: '⏰ Football game reminder',
+      greet: '👋 Hello!',
+      intro: "Just a reminder: you're signed up for a football game. Game details:",
+      foot: "Please don't be late and don't miss the game! 🙌\nIf you can't make it, cancel your registration in the app so someone else can take your spot.",
+    },
+    label: { game: '⚽ Game', date: '📅 Date', time: '🕗 Time', place: '📍 Location' },
+    rules: '📋 Game rules',
     open: '📋 Open the app',
     map: '📍 View on map',
   },
@@ -60,7 +75,14 @@ const MSG = {
     game: 'Футбольная игра',
     in: { head: '✅ Вы записаны!', foot: 'Пожалуйста, приходите вовремя. До встречи! 👋' },
     wait: { head: '⏳ Вы в списке ожидания', foot: 'Сейчас мест недостаточно. Если место освободится, вы попадёте в список. Статус можно посмотреть в приложении.' },
-    remind: { head: '⏰ Напоминание: вы записаны на футбол!', foot: 'Пожалуйста, не опаздывайте и не пропустите игру! 🙌\nЕсли не сможете прийти, отмените запись в приложении, чтобы место досталось другому игроку.' },
+    remind: {
+      head: '⏰ Напоминание об игре',
+      greet: '👋 Здравствуйте!',
+      intro: 'Напоминаем: вы записаны на футбольную игру. Информация об игре:',
+      foot: 'Пожалуйста, не опаздывайте и не пропустите игру! 🙌\nЕсли не сможете прийти, отмените запись в приложении, чтобы место досталось другому игроку.',
+    },
+    label: { game: '⚽ Игра', date: '📅 Дата', time: '🕗 Время', place: '📍 Место' },
+    rules: '📋 Правила игры',
     open: '📋 Открыть приложение',
     map: '📍 Показать на карте',
   },
@@ -68,7 +90,14 @@ const MSG = {
     game: 'Futbola spēle',
     in: { head: '✅ Pieteikšanās veiksmīga!', foot: 'Lūdzu, ierodieties laikā. Uz tikšanos! 👋' },
     wait: { head: '⏳ Jūs esat gaidīšanas sarakstā', foot: 'Pašlaik nepietiek vietu. Ja vieta atbrīvosies, pieteikums tiks pārcelts uz sarakstu. Statusu varat apskatīt lietotnē.' },
-    remind: { head: '⏰ Atgādinājums: jums ir pieteikums futbolam!', foot: 'Lūdzu, nekavējieties un neizlaidiet spēli! 🙌\nJa nevarat ierasties, atceliet pieteikumu lietotnē, lai vietu varētu ieņemt cits spēlētājs.' },
+    remind: {
+      head: '⏰ Atgādinājums par spēli',
+      greet: '👋 Sveiki!',
+      intro: 'Atgādinām: jums ir pieteikums futbola spēlei. Informācija par spēli:',
+      foot: 'Lūdzu, nekavējieties un neizlaidiet spēli! 🙌\nJa nevarat ierasties, atceliet pieteikumu lietotnē, lai vietu varētu ieņemt cits spēlētājs.',
+    },
+    label: { game: '⚽ Spēle', date: '📅 Datums', time: '🕗 Laiks', place: '📍 Vieta' },
+    rules: '📋 Spēles noteikumi',
     open: '📋 Atvērt lietotni',
     map: '📍 Skatīt kartē',
   },
@@ -94,12 +123,23 @@ export function whenParts(ts, lang) {
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // Tayyor xabar: { text (HTML), reply_markup (tugmalar) }
-export function buildMessage(kind, g, lang, env) {
+// Eslatma (remind) batafsil: salomlashish, o'yin haqida ma'lumot (nomi, kun, soat, joy) va qoidalar (rules.js, bo'sh bo'lsa chiqmaydi)
+export function buildMessage(kind, g, lang, env, rules = GAME_RULES) {
   const L = MSG[lang] || MSG.uz;
-  const w = whenParts(g.ts, MSG[lang] ? lang : 'uz');
+  const lg = MSG[lang] ? lang : 'uz';
+  const w = whenParts(g.ts, lg);
   const title = !g.title || g.title === DEFAULT_TITLE ? L.game : g.title;
-  const lines = [`<b>${esc(L[kind].head)}</b>`, '', `⚽ ${esc(title)}`, `📅 ${esc(w.date)}`, `🕗 ${w.time}`];
-  if (g.place) lines.push(`📍 ${esc(g.place)}`);
+  let lines;
+  if (kind === 'remind') {
+    const k = L.label;
+    lines = [`<b>${esc(L.remind.head)}</b>`, '', `${esc(L.remind.greet)} ${esc(L.remind.intro)}`, '', `${k.game}: ${esc(title)}`, `${k.date}: ${esc(w.date)}`, `${k.time}: ${w.time}`];
+    if (g.place) lines.push(`${k.place}: ${esc(g.place)}`);
+    const r = String((rules && rules[lg]) || '').trim();
+    if (r) lines.push('', `<b>${esc(L.rules)}</b>`, esc(r));
+  } else {
+    lines = [`<b>${esc(L[kind].head)}</b>`, '', `⚽ ${esc(title)}`, `📅 ${esc(w.date)}`, `🕗 ${w.time}`];
+    if (g.place) lines.push(`📍 ${esc(g.place)}`);
+  }
   lines.push('', esc(L[kind].foot));
   const buttons = [[{ text: L.open, web_app: { url: webAppUrl(env) } }]];
   if (g.map_url) buttons.push([{ text: L.map, url: g.map_url }]);
