@@ -1,17 +1,24 @@
-# Cloudflare Wrangler sozlamasi (ixtiyoriy: faqat `wrangler deploy` ishlatsangiz kerak).
-# Agar kodni Cloudflare panelida qo'lda qo'yayotgan bo'lsangiz, bu fayl kerak emas.
+# Cloudflare Wrangler sozlamasi. Cloudflare GitHub'dagi `main` filialini kuzatadi va har push'dan keyin
+# serverni shu fayl bo'yicha o'zi yangilaydi (Workers Builds; README dagi 5-bo'limga qarang).
+# Kodni Cloudflare panelida qo'lda qo'yish endi shart emas.
 name = "riga-sp-api"
 main = "src/index.js"
 compatibility_date = "2024-11-01"
+keep_vars = true          # panelda qo'lda kiritilgan oddiy o'zgaruvchilar (masalan WEBAPP_URL) o'chib ketmasin
 
 [vars]
 OWNER_IDS = "5310968084"
 ALLOWED_ORIGIN = "https://bilol-pm.github.io"
 
-# D1 bazani panelda yaratgan bo'lsangiz, uning ID sini shu yerga yozing:
+# Eslatmalar: har 5 daqiqada o'yinga 24 soat qolganlarni tekshiradi
+[triggers]
+crons = ["*/5 * * * *"]
+
+# D1 baza (ID maxfiy emas)
 [[d1_databases]]
 binding = "DB"
 database_name = "riga-sp-league"
-database_id = "BU_YERGA_D1_ID_NI_YOZING"
+database_id = "be9a0d96-7f17-43ac-a35c-78e3b3ea05ad"
 
-# BOT_TOKEN ni bu faylga YOZMANG. Maxfiy kalit: `wrangler secret put BOT_TOKEN`
+# BOT_TOKEN va WEBHOOK_SECRET bu faylga YOZILMAYDI: ular Cloudflare panelida Secret sifatida turadi
+# va har safar yangilanganda saqlanib qoladi.

@@ -93,7 +93,7 @@ riga-sp-league-bot/
 │   │       └── admins.js   Asoschi: adminlarni boshqarish
 │   ├── scripts/build.mjs   src/ ni bitta faylga yig'adi
 │   ├── dist/worker.js      Yig'ilgan fayl (Cloudflare paneliga shu qo'yiladi)
-│   ├── wrangler.toml       Ixtiyoriy: wrangler orqali deploy qilish uchun
+│   ├── wrangler.toml       Cloudflare sozlamasi: avtomatik joylash shu fayl bo'yicha ishlaydi
 │   └── package.json
 ├── scripts/bump-version.mjs  CSS/JS keshini yangilash uchun versiya raqamini oshiradi
 ├── bot.py                  ESKI variant: kompyuterda ishlaydigan bot (faqat sinash uchun, pastga qarang)
@@ -176,6 +176,15 @@ Qoidalar: xabar odam yozilganda ilovada tanlagan tilida ketadi; sana va soat Rig
 eslatma yuborilmaydi (ular ro'yxatga o'tgach oladi); ro'yxatdan chiqqan odamga ketmaydi; o'yin vaqti o'zgarsa,
 eslatma yangi vaqtga qarab qayta yuboriladi; o'yinga 24 soatdan kam qolganda yozilganga faqat tasdiq xabari ketadi.
 Botni bloklagan yoki bot bilan hech qachon gaplashmagan odamga xabar bormaydi (bu xato emas, o'tkazib yuboriladi).
+
+### 5. Avtomatik joylash (bir marta sozlanadi)
+Cloudflare GitHub'ga ulanadi va `main` ga har push'dan keyin serverni o'zi yangilaydi (kodni panelga qo'lda qo'yish shart emas):
+1. Cloudflare → Workers & Pages → `riga-sp-api` → **Settings** → **Builds** → **Connect** → GitHub → `riga-sp-league-bot`.
+2. Production branch: `main`. Root directory: `backend`. Build command: bo'sh. Deploy command: `npx wrangler deploy`.
+
+Sozlamalar `backend/wrangler.toml` da (baza, `OWNER_IDS`, `ALLOWED_ORIGIN`, har 5 daqiqalik Cron). Parollar (`BOT_TOKEN`,
+`WEBHOOK_SECRET`) faylga yozilmaydi, panelda Secret bo'lib turadi. `backend/dist/worker.js` endi faqat zaxira
+(Cloudflare ulanmay qolsa, qo'lda qo'yish uchun).
 
 ## Muhim qoidalar (biznes mantiq)
 
