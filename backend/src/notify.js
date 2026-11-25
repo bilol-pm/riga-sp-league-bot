@@ -6,8 +6,10 @@
  * Eslatmani Cloudflare Cron Trigger ishga tushiradi (index.js dagi `scheduled`), har 5 daqiqada.
  * Xabar odam yozilganda tanlagan tilida ketadi (uz / en / ru / lv).
  * Matnlarni o'zgartirish: pastdagi MSG jadvalida.
+ *
+ * Yana ikki xabar (moderatsiya): birinchi "kelmadi"da OGOHLANTIRISH, ikkinchisida BLOK xabari (MOD jadvali).
  */
-import { DEFAULT_TITLE, REMIND_BATCH, REMIND_BEFORE_MS, TIMEZONE } from './config.js';
+import { BLOCK_DAYS, DEFAULT_TITLE, REMIND_BATCH, REMIND_BEFORE_MS, TIMEZONE } from './config.js';
 import { ensureSchema } from './db.js';
 import { seatRegs } from './queue.js';
 import { GAME_RULES } from './rules.js';
@@ -159,6 +161,66 @@ export async function sendTo(env, chatId, msg) {
     console.error(e);
     return 'retry';
   }
+}
+
+
+// ---------- Moderatsiya xabarlari: ogohlantirish va blok ----------
+// Muddat matni: nom = "1 hafta", for = "1 haftaga" (har tilda o'z shakli)
+function duration(lang, days) {
+  const w = days / 7;
+  if (!Number.isInteger(w)) {
+    return { uz: { nom: `${days} kun`, to: `${days} kunga` }, en: { nom: `${days} days`, to: `for ${days} days` }, ru: { nom: `${days} дн.`, to: `на ${days} дн.` }, lv: { nom: `${days} dienas`, to: `uz ${days} dienām` } }[lang];
+  }
+  const one = w % 10 === 1 && w % 100 !== 11;
+  const few = w % 10 >= 2 && w % 10 <= 4 && (w % 100 < 12 || w % 100 > 14);
+  if (lang === 'en') return { nom: `${w} week${w > 1 ? 's' : ''}`, to: `for ${w} week${w > 1 ? 's' : ''}` };
+  if (lang === 'ru') return { nom: `${w} ${one ? 'неделя' : few ? 'недели' : 'недель'}`, to: `на ${w} ${one ? 'неделю' : few ? 'недели' : 'недель'}` };
+  if (lang === 'lv') return { nom: `${w} ${one ? 'nedēļa' : 'nedēļas'}`, to: `uz ${w} ${one ? 'nedēļu' : 'nedēļām'}` };
+  return { nom: `${w} hafta`, to: `${w} haftaga` };
+}
+
+const MOD = {
+  uz: {
+    warn: { head: '⚠️ Ogohlantirish', intro: "Siz quyidagi futbol o'yiniga kelmadingiz:", body: (d) => `Bu sizning oxirgi imkoniyatingiz. Agar yana o'yinga kelmasangiz, akkauntingiz ${d.to} bloklanadi va shu vaqt davomida ro'yxatdan o'ta olmaysiz.\n\nKela olmasangiz, oldindan ilovada ro'yxatdan chiqing: boshqa o'yinchilarga joy bo'shaydi.\nSavollar bo'lsa, admin bilan bog'laning.` },
+    block: { head: '⛔ Akkauntingiz vaqtincha bloklandi', intro: (d) => `Siz futbol o'yinlariga ikki marta kelmadingiz, shuning uchun ro'yxatdan o'tishingiz ${d.to} cheklandi.`, len: (d) => `🔒 Blok muddati: ${d.nom}`, until: (dt) => `📅 Qayta ro'yxatdan o'ta olasiz: ${dt.date}, ${dt.time} dan keyin`, cancelled: "Shu davrdagi o'yinlarga yozuvlaringiz bekor qilindi.", foot: "Savol yoki e'tiroz bo'lsa, admin bilan bog'laning." },
+  },
+  en: {
+    warn: { head: '⚠️ Warning', intro: 'You missed this football game:', body: (d) => `This is your last chance. If you miss another game, your account will be blocked ${d.to} and you won't be able to register during that time.\n\nIf you can't make it, cancel your registration in the app in advance so another player can take your spot.\nIf you have questions, contact the admin.` },
+    block: { head: '⛔ Your account is temporarily blocked', intro: (d) => `You have missed two games, so registration is restricted ${d.to}.`, len: (d) => `🔒 Block length: ${d.nom}`, until: (dt) => `📅 You can register again after: ${dt.date}, ${dt.time}`, cancelled: 'Your registrations for games during this period were cancelled.', foot: 'If you have questions or objections, contact the admin.' },
+  },
+  ru: {
+    warn: { head: '⚠️ Предупреждение', intro: 'Вы не пришли на футбольную игру:', body: (d) => `Это ваш последний шанс. Если вы снова не придёте на игру, ваш аккаунт будет заблокирован ${d.to}, и в это время вы не сможете записываться.\n\nЕсли не сможете прийти, заранее отмените запись в приложении, чтобы место досталось другому игроку.\nЕсли есть вопросы, свяжитесь с администратором.` },
+    block: { head: '⛔ Ваш аккаунт временно заблокирован', intro: (d) => `Вы дважды не пришли на игры, поэтому запись ограничена ${d.to}.`, len: (d) => `🔒 Срок блокировки: ${d.nom}`, until: (dt) => `📅 Снова записаться можно после: ${dt.date}, ${dt.time}`, cancelled: 'Ваши записи на игры в этот период отменены.', foot: 'Если есть вопросы или возражения, свяжитесь с администратором.' },
+  },
+  lv: {
+    warn: { head: '⚠️ Brīdinājums', intro: 'Jūs neieradāties uz šo futbola spēli:', body: (d) => `Šī ir jūsu pēdējā iespēja. Ja vēlreiz neieradīsieties uz spēli, jūsu profils tiks bloķēts ${d.to} un šajā laikā nevarēsiet pieteikties.\n\nJa nevarat ierasties, iepriekš atceliet pieteikumu lietotnē, lai vietu varētu ieņemt cits spēlētājs.\nJa ir jautājumi, sazinieties ar administratoru.` },
+    block: { head: '⛔ Jūsu profils uz laiku bloķēts', intro: (d) => `Jūs divreiz neieradāties uz spēlēm, tāpēc pieteikšanās ir ierobežota ${d.to}.`, len: (d) => `🔒 Bloķēšanas ilgums: ${d.nom}`, until: (dt) => `📅 Atkal pieteikties varēsiet pēc: ${dt.date}, ${dt.time}`, cancelled: 'Jūsu pieteikumi spēlēm šajā periodā ir atcelti.', foot: 'Ja ir jautājumi vai iebildumi, sazinieties ar administratoru.' },
+  },
+};
+
+// kind: 'warn' | 'block'. extra: { until, cancelled } (blok uchun)
+export function buildModeration(kind, g, lang, env, extra = {}) {
+  const lg = MOD[lang] ? lang : 'uz';
+  const L = MSG[lg];
+  const M = MOD[lg][kind];
+  const d = duration(lg, BLOCK_DAYS);
+  const w = whenParts(g.ts, lg);
+  const title = !g.title || g.title === DEFAULT_TITLE ? L.game : g.title;
+  let lines;
+  if (kind === 'warn') {
+    lines = [`<b>${esc(M.head)}</b>`, '', esc(M.intro), '', `${L.label.game}: ${esc(title)}`, `${L.label.date}: ${esc(w.date)}`, `${L.label.time}: ${w.time}`, '', esc(M.body(d))];
+  } else {
+    const u = whenParts(extra.until, lg);
+    lines = [`<b>${esc(M.head)}</b>`, '', esc(M.intro(d)), '', esc(M.len(d)), esc(M.until(u))];
+    if (extra.cancelled) lines.push('', esc(M.cancelled));
+    lines.push('', esc(M.foot));
+  }
+  return { text: lines.join('\n'), reply_markup: { inline_keyboard: [[{ text: L.open, web_app: { url: webAppUrl(env) } }]] } };
+}
+
+// Moderatsiya xabarini yuborish (xato bo'lsa jim o'tadi; belgilash/blok bekor bo'lmaydi)
+export async function notifyModeration(env, kind, g, uid, lang, extra) {
+  await sendTo(env, uid, buildModeration(kind, g, lang, env, extra));
 }
 
 // Ro'yxatdan o'tgandan keyin: tasdiq xabari (navbatda bo'lsa, boshqa matn)

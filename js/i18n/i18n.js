@@ -19,7 +19,13 @@ function t(s, v) {
   if (v) r = r.replace(/\{(\w+)\}/g, (m, k) => (v[k] != null ? v[k] : m));
   return r;
 }
-const srvErr = m => { const x = /^(\d+) ta o'yinchining hammasini kiriting$/.exec(m || ''); return x ? t("{n} ta o'yinchining hammasini kiriting", { n: x[1] }) : t(m); };
+const srvErr = m => {
+  let x = /^(\d+) ta o'yinchining hammasini kiriting$/.exec(m || '');
+  if (x) return t("{n} ta o'yinchining hammasini kiriting", { n: x[1] });
+  x = /^Email domeni xato yozilgan: (\S+)$/.exec(m || '');
+  if (x) return t("Email domeni xato yozilgan. {d} demoqchimisiz?", { d: x[1] });
+  return t(m);
+};
 function setLang(l) {
   LANG = l; try { localStorage.setItem(LANG_KEY, l); } catch (e) {}
   document.documentElement.lang = l; document.title = t('Riga Street Power Liga');

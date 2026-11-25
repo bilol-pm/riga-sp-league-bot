@@ -2,6 +2,7 @@
 import { DEFAULT_TITLE } from '../config.js';
 import { HttpError } from '../http.js';
 import { needAdmin } from '../auth.js';
+import { removeStrike } from '../moderation.js';
 import { int, str } from '../utils.js';
 
 export async function saveGame(env, me, b) {
@@ -44,6 +45,8 @@ export async function deleteGame(env, me, b) {
   needAdmin(me);
   const id = int(b.id);
   if (!Number.isInteger(id)) throw new HttpError(400, "O'yin tanlanmagan");
+  // O'yin o'chirilsa, undagi "kelmadi" belgilari ham hisobdan chiqadi
+  for (const r of (await env.DB.prepare('SELECT id FROM registrations WHERE game_id = ?').bind(id).all()).results) await removeStrike(env, r.id);
   await env.DB.batch([
     env.DB.prepare('DELETE FROM registrations WHERE game_id = ?').bind(id),
     env.DB.prepare('DELETE FROM games WHERE id = ?').bind(id),
@@ -54,5 +57,6 @@ export async function deleteReg(env, me, b) {
   needAdmin(me);
   const id = int(b.id);
   if (!Number.isInteger(id)) throw new HttpError(400, 'Yozuv tanlanmagan');
+  await removeStrike(env, id);   // "kelmadi" belgisi bo'lsa, u ham olib tashlanadi
   await env.DB.prepare('DELETE FROM registrations WHERE id = ?').bind(id).run();
 }

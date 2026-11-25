@@ -5,13 +5,13 @@ async function submitForm() {
   let body;
   if (f.type === 'solo') {
     if (f.name.trim().length < 2) return toast(t("Ismingizni kiriting"));
-    if (!okPhone(f.phone)) return toast(t("Telefon raqamni to'g'ri kiriting"));
-    if (!okEmail(f.email)) return toast(t("Email manzilni to'g'ri kiriting"));
-    body = { lang: LANG, gameId: f.gameId, kind: 'solo', name: f.name, phone: f.phone, email: f.email };
+    if (!okPhone(f.phone)) return toast(t(PHONE_ERR));
+    const em = emailError(f.email); if (em) return toast(em);
+    body = { lang: LANG, gameId: f.gameId, kind: 'solo', name: f.name, phone: fullPhone(f.phone), email: f.email.trim() };
   } else if (f.type === 'team') {
     if (f.members.some(s => s.trim().length < 2)) return toast(t("{n} ta o'yinchining hammasini kiriting", { n: TEAM_SIZE }));
-    if (!okPhone(f.phone)) return toast(t("Kapitanning telefon raqamini kiriting"));
-    body = { lang: LANG, gameId: f.gameId, kind: 'team', teamName: f.teamName, members: f.members, captain: f.captain, phone: f.phone };
+    if (!okPhone(f.phone)) return toast(t(PHONE_ERR));
+    body = { lang: LANG, gameId: f.gameId, kind: 'team', teamName: f.teamName, members: f.members, captain: f.captain, phone: fullPhone(f.phone) };
   } else return toast(t("Avval tanlang: jamoa yoki yakka"));
   if (!(await act('/api/register', body))) return;
   const g = byId(f.gameId), wait = g && statusOf(g) === 'wait';

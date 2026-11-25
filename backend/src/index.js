@@ -49,7 +49,7 @@ export default {
       await handler(env, me, await readBody(req), ctx);
       return json({ ok: true, state: await buildState(env, me) }, 200, ch);
     } catch (e) {
-      if (e instanceof HttpError) return json({ ok: false, error: e.message }, e.status, ch);
+      if (e instanceof HttpError) return json({ ok: false, error: e.message, ...(e.data || {}) }, e.status, ch);
       console.error(e);
       return json({ ok: false, error: "Server xatosi. Birozdan keyin urinib ko'ring." }, 500, ch);
     }

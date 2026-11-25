@@ -12,7 +12,7 @@ function viewForm() {
       <div class="field-l">${t("Ism")}</div>
       <input type="text" data-f="name" maxlength="40" placeholder="${t('Ismingiz')}" value="${esc(f.name)}">
       <div class="field-l">${t("Telefon raqam")}</div>
-      <input type="tel" data-f="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">
+      ${phoneInput('data-f="phone"', f.phone)}
       <div class="field-l">Email</div>
       <input type="email" data-f="email" maxlength="80" placeholder="email@example.com" value="${esc(f.email)}">`;
   } else if (f.type === 'team') {
@@ -26,7 +26,7 @@ function viewForm() {
       ${rows}
       <div class="hint">${t("⭐ Kapitanni belgilang. Kapitan jamoa uchun javob beradi: kim keldi, kim kelmadi.")}</div>
       <div class="field-l">${t('Kapitan: {name}. Telefon raqami', { name: esc((f.members[f.captain] || '').trim() || '—') })}</div>
-      <input type="tel" data-f="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">`;
+      ${phoneInput('data-f="phone"', f.phone)}`;
   }
   return `<button class="back" data-a="fback">${t("← Orqaga")}</button>
     <div class="card hero"><div class="label">${t("Ro'yxatdan o'tish")}</div><div class="title">${esc(gTitle(g))}</div>${metaHtml(g)}</div>

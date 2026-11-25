@@ -13,3 +13,5 @@ export const DEFAULT_WEBAPP_URL = 'https://bilol-pm.github.io/riga-sp-league-bot
 export const TIMEZONE = 'Europe/Riga';        // xabarlarda sana va soat shu vaqt mintaqasida yoziladi
 export const REMIND_BEFORE_MS = 24 * 3600 * 1000;   // eslatma o'yindan necha soat oldin ketadi (24 soat)
 export const REMIND_BATCH = 40;                // bitta cron ishga tushishida eng ko'pi bilan nechta xabar (Cloudflare bepul limiti)
+export const STRIKES_TO_BLOCK = 2;             // nechta "kelmadi"dan keyin o'yinchi avtomatik bloklanadi
+export const BLOCK_DAYS = 7;                   // blok muddati (kun): 7 = 1 hafta

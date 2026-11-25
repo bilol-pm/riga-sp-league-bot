@@ -58,3 +58,9 @@ h3{margin:18px 2px 10px;font-size:17px}
 .stat b{font-size:24px;display:block}
 .stats3 .stat b{font-size:22px}
 .stat small{color:var(--muted);font-size:12px}
+
+/* admin: keldi / kelmadi tugmalari */
+.att{display:flex;gap:8px;margin-top:8px}
+.abtn{flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--muted);font-size:13px;font-weight:600}
+.abtn.ok.on{background:#22c55e22;color:#4ade80;border-color:#22c55e66}
+.abtn.no.on{background:#ef444422;color:#f87171;border-color:#ef444466}

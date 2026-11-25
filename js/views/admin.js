@@ -12,6 +12,7 @@ function adminSub() {
   const v = state.adminView;
   if (v === 'games') return viewAdmGames();
   if (v === 'players') return viewAdmPlayers();
+  if (v === 'blocks') return viewAdmBlocks();
   if (v === 'stats') return viewAdmStats();
   if (v === 'admins' && isOwner()) return viewAdmAdmins();
   return null;
@@ -22,6 +23,7 @@ function adminMenu() {
   const g1 = li('➕', t("Yangi o'yin qo'shish"), t("Sana, vaqt, joy va sig'im"), 'newgame') +
     li('🗓', t("O'yinlar"), up.length ? t('{n} ta rejalashtirilgan', { n: up.length }) : t("Hali o'yin yo'q"), 'adm', 'games') +
     li('👥', t("Ro'yxatdan o'tganlar"), regs ? t("{a} ta yozuv · {b} o'yinchi", { a: regs, b: people }) : t('Hali hech kim yozilmagan'), 'adm', 'players') +
+    li('⛔', t('Bloklanganlar'), state.blocks.length ? t('{n} ta bloklangan', { n: state.blocks.length }) : t('Hozircha hech kim bloklanmagan'), 'adm', 'blocks') +
     li('📊', t('Statistika'), t("Bo'sh joylar, jamoalar, navbat"), 'adm', 'stats');
   const g2 = isOwner() ? `<div class="sec-l">${t('Boshqaruv')}</div><div class="menu">` +
     li('🛡', t('Adminlar'), state.admins.length ? t('{n} ta admin', { n: state.admins.length }) : t('Faqat siz (asoschi)'), 'adm', 'admins') + `</div>` : '';
@@ -46,10 +48,24 @@ function viewAdmGames() {
 }
 
 function viewAdmPlayers() {
-  const up = upcoming();
-  const blocks = up.map(g => `<div class="sec-h"><h3 style="font-size:15px">${fmtDate(g.ts)}, ${fmtTime(g.ts)}</h3><span class="g-sub" style="margin:0">${g.used}/${g.capacity}</span></div>
-    <div class="card">${g.players.length ? g.players.map((p, i) => playerRow(p, i, true)).join('') : `<div class="g-sub">${t("Hali hech kim yozilmagan.")}</div>`}</div>`).join('');
-  return admHead(t("Ro'yxatdan o'tganlar")) + (blocks || `<div class="empty"><div class="big">📅</div>${t("Hali o'yin qo'shilmagan.")}</div>`);
+  const gameCard = g => `<div class="sec-h"><h3 style="font-size:15px">${fmtDate(g.ts)}, ${fmtTime(g.ts)}</h3><span class="g-sub" style="margin:0">${g.used}/${g.capacity}</span></div>
+    <div class="card">${g.players.length ? g.players.map((p, i) => playerRow(p, i, true, g)).join('') : `<div class="g-sub">${t("Hali hech kim yozilmagan.")}</div>`}</div>`;
+  const up = upcoming().map(gameCard).join('');
+  // O'tgan o'yinlar (oxirgi kunlar): kim keldi / kelmadi shu yerda belgilanadi
+  const past = state.games.filter(g => g.ts <= Date.now() && g.players.length).sort((a, b) => b.ts - a.ts);
+  const pastHtml = past.length ? `<h3>${t("O'tgan o'yinlar")}</h3><div class="hint" style="margin-top:-4px">${t("Kim kelmaganini belgilang. Ikkinchi marta kelmasa, akkaunt avtomatik bloklanadi.")}</div>` +
+    past.map(g => { const n = g.players.filter(p => !p.waiting && p.attended == null).length; return gameCard(g).replace('</span></div>', `</span></div>${n ? `<div class="g-sub" style="margin:-4px 2px 8px">${t('{n} ta belgilanmagan', { n })}</div>` : ''}`); }).join('') : '';
+  return admHead(t("Ro'yxatdan o'tganlar")) + (up || pastHtml ? up + pastHtml : `<div class="empty"><div class="big">📅</div>${t("Hali o'yin qo'shilmagan.")}</div>`);
+}
+
+function viewAdmBlocks() {
+  const list = state.blocks.length ? state.blocks.map(b => `<div class="card"><div class="row"><div class="grow">
+      <div class="g-title">⛔ ${esc(b.name || '—')}</div>
+      <div class="contact">📞 ${b.phone ? esc('+' + String(b.phone).replace(/^\+/, '')) : ''}${b.email ? ' · ✉️ ' + esc(b.email) : ''}</div>
+      <div class="g-sub">${t("Qayta ro'yxatdan o'tish: {when} dan keyin", { when: fmtWhen(b.until) })}</div></div></div>
+      <div class="btnrow"><button class="btn out sm" data-a="unblock" data-id="${b.id}">${t("Blokdan chiqarish")}</button></div></div>`).join('')
+    : `<div class="empty"><div class="big">✅</div>${t("Hozircha hech kim bloklanmagan")}</div>`;
+  return admHead(t('Bloklanganlar')) + list;
 }
 
 function viewAdmStats() {

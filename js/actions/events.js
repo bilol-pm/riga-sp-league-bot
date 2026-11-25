@@ -2,11 +2,13 @@
 
 document.addEventListener('input', e => {
   const d = e.target.dataset || {};
+  let v = e.target.value;
+  if (d.f === 'phone' || d.pf === 'phone') { e.target.value = localDigits(v); v = fullPhone(v); }   // faqat 8 ta raqam; +371 oldindan qo'yilgan
   if (d.f && state.form) {
-    if (/^m\d$/.test(d.f)) state.form.members[+d.f.slice(1)] = e.target.value; else state.form[d.f] = e.target.value;
-  } else if (d.af && state.aform) state.aform[d.af] = e.target.value;
-  else if (d.na) state.newAdmin[d.na] = e.target.value;
-  else if (d.pf && state.pform) state.pform[d.pf] = e.target.value;
+    if (/^m\d$/.test(d.f)) state.form.members[+d.f.slice(1)] = v; else state.form[d.f] = v;
+  } else if (d.af && state.aform) state.aform[d.af] = v;
+  else if (d.na) state.newAdmin[d.na] = v;
+  else if (d.pf && state.pform) state.pform[d.pf] = v;
 });
 
 document.addEventListener('click', async e => {
@@ -24,10 +26,10 @@ document.addEventListener('click', async e => {
   else if (a === 'pedit') { state.profView = 'edit'; state.pform = { name: profile.name, phone: profile.phone, email: profile.email }; render(); window.scrollTo(0, 0); }
   else if (a === 'pback') { state.profView = null; state.pform = null; render(); }
   else if (a === 'psave') {
-    const f = state.pform, name = f.name.trim(), phone = f.phone.trim(), email = f.email.trim();
+    const f = state.pform, name = f.name.trim(), phone = fullPhone(f.phone), email = f.email.trim();
     if (name && name.length < 2) return toast(t("Ism juda qisqa"));
-    if (phone && !okPhone(phone)) return toast(t("Telefon raqamni to'g'ri kiriting"));
-    if (email && !okEmail(email)) return toast(t("Email manzilni to'g'ri kiriting"));
+    if (phone && !okPhone(phone)) return toast(t(PHONE_ERR));
+    const em = email && emailError(email); if (em) return toast(em);
     Object.assign(profile, { name, phone, email });
     if (!saveProf(profile)) return toast(t("Saqlab bo'lmadi"));
     state.profView = null; state.pform = null; render(); toast(t('Saqlandi ✅'));
@@ -62,6 +64,20 @@ document.addEventListener('click', async e => {
   });
   else if (a === 'delreg') ask(t("Bu yozuvni ro'yxatdan o'chirasizmi?"), async () => {
     if (await act('/api/admin/reg/delete', { id: +id }, t("Yozuv o'chirildi"))) render();
+  });
+  else if (a === 'att') {   // admin: o'tgan o'yinda "keldi" / "kelmadi" belgilash (shu tugmani yana bossa, belgi olib tashlanadi)
+    const p = regById(+id); if (!p) return;
+    const st = el.dataset.st, cur = p.attended;
+    const next = (st === 'came' && cur === 1) || (st === 'absent' && cur === 0) ? 'clear' : st;
+    const msg = { came: t("«Keldi» deb belgilandi"), absent: t("«Kelmadi» deb belgilandi"), clear: t('Belgi olib tashlandi') }[next];
+    const go = async () => { if (await act('/api/admin/attendance', { id: +id, status: next }, msg)) render(); };
+    if (next === 'absent') ask((p.strikes || 0) + 1 >= STRIKES_TO_BLOCK
+      ? t("Bu o'yinchi ikkinchi marta kelmadi. Akkaunt 1 haftaga bloklanadi. Davom etasizmi?")
+      : t("«Kelmadi» deb belgilaysizmi? O'yinchiga ogohlantirish xabari yuboriladi."), go);
+    else go();
+  }
+  else if (a === 'unblock') ask(t("Blokni olib tashlaysizmi?"), async () => {
+    if (await act('/api/admin/unblock', { id: +id }, t('Blok olib tashlandi'))) render();
   });
   else if (a === 'addadmin') {
     const uid = state.newAdmin.uid.trim();

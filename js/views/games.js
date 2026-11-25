@@ -10,7 +10,7 @@ function viewBoot() {
 
 /* Asosiy sahifa: keyingi o'yin + o'yin sanalari + kalendar */
 function viewGames() {
-  const note = INIT ? '' : `<div class="note">${t("Ro'yxatdan o'tish uchun bu sahifani Telegramdagi bot orqali oching.")}</div>`;
+  const note = (INIT ? '' : `<div class="note">${t("Ro'yxatdan o'tish uchun bu sahifani Telegramdagi bot orqali oching.")}</div>`) + blockNote();
   const list = upcoming();
   if (!list.length) {
     return topHtml() + note + `<div class="empty"><div class="big">📅</div>${t("Hozircha rejalashtirilgan o'yin yo'q.")}<br>${t("Yangi o'yin e'lon qilinishini kuting.")}</div>` + calendarHtml();

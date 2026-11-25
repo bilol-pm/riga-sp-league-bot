@@ -2,8 +2,10 @@
 import { REMIND_BEFORE_MS, TEAM_SIZE } from '../config.js';
 import { HttpError } from '../http.js';
 import { needLogin } from '../auth.js';
+import { findBlock } from '../moderation.js';
 import { notifyRegistered, pickLang } from '../notify.js';
 import { int, str } from '../utils.js';
+import { emailKey, parseEmail, parsePhone, phoneKey } from '../validate.js';
 
 export async function register(env, me, b, ctx) {
   needLogin(me);
@@ -16,8 +18,9 @@ export async function register(env, me, b, ctx) {
   const kind = b.kind === 'team' ? 'team' : b.kind === 'solo' ? 'solo' : null;
   if (!kind) throw new HttpError(400, 'Avval tanlang: jamoa yoki yakka');
 
-  const phone = str(b.phone, 30);
-  if (!/^\+?[0-9 ()-]{7,20}$/.test(phone)) throw new HttpError(400, "Telefon raqamni to'g'ri kiriting");
+  // Telefon: faqat Latviya raqami (+371 va 8 ta raqam); "+371XXXXXXXX" ko'rinishida saqlanadi
+  const phone = parsePhone(str(b.phone, 30));
+  if (!phone) throw new HttpError(400, "Telefon raqam +371 bilan boshlanib, 8 ta raqamdan iborat bo'lsin");
 
   let name;
   let members = [];
@@ -26,8 +29,9 @@ export async function register(env, me, b, ctx) {
   if (kind === 'solo') {
     name = str(b.name, 40);
     if (name.length < 2) throw new HttpError(400, 'Ismingizni kiriting');
-    email = str(b.email, 80);
-    if (!/^\S+@\S+\.\S+$/.test(email)) throw new HttpError(400, "Email manzilni to'g'ri kiriting");
+    const em = parseEmail(str(b.email, 80));
+    if (!em.ok) throw new HttpError(400, em.suggest ? `Email domeni xato yozilgan: ${em.suggest}` : "Email manzilni to'g'ri kiriting");
+    email = em.email;
   } else {
     members = Array.isArray(b.members) ? b.members.map((s) => str(s, 40)) : [];
     if (members.length !== TEAM_SIZE || members.some((s) => s.length < 2)) {
@@ -39,6 +43,10 @@ export async function register(env, me, b, ctx) {
     }
     name = str(b.teamName, 40) || 'Jamoa';
   }
+
+  // Bloklangan odam (Telegram ID, telefon yoki email bo'yicha) ro'yxatdan o'ta olmaydi
+  const blocked = await findBlock(env, { uid: me.id, phone: phoneKey(phone), email: emailKey(email) });
+  if (blocked) throw new HttpError(403, 'Siz vaqtincha bloklangansiz', { until: blocked.until_ts });
 
   // Til: mijoz yuborgan (ilovada tanlangan), bo'lmasa Telegram tili. Keyingi xabarlar shu tilda ketadi.
   const lang = pickLang(b.lang, me.tgLang);

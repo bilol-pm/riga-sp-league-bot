@@ -25,9 +25,16 @@ function placeHtml(g) {
   return g.place && g.mapUrl ? `<span class="maplink" data-a="map" data-id="${g.id}">${pl}</span>` : pl;
 }
 const metaHtml = g => `<div class="meta"><span>📅 ${fmtDate(g.ts)}</span><span>🕗 ${fmtTime(g.ts)}</span><span>📍 ${placeHtml(g)}</span></div>`;
+/* Telefon maydoni: "+371" qo'zg'almas, odam faqat 8 ta raqam yozadi. attr: data-f="phone" yoki data-pf="phone" */
+const phoneInput = (attr, v) => `<div class="phone"><span>+371</span><input type="tel" inputmode="numeric" autocomplete="tel-national" ${attr} placeholder="20 000 000" value="${esc(localDigits(v))}"></div>
+  <div class="hint">${t("Latviya raqami: +371 va 8 ta raqam")}</div>`;
+/* Bloklangan o'yinchi: serverdan kelgan blok tugash vaqti */
+const blockedUntil = () => (!isAdmin() && state.me && state.me.blockedUntil > Date.now()) ? state.me.blockedUntil : 0;
+const blockNote = () => blockedUntil() ? `<div class="note block">${t("⛔ Akkauntingiz vaqtincha bloklangan. Qayta ro'yxatdan o'tish mumkin: {when} dan keyin.", { when: fmtWhen(blockedUntil()) })}</div>` : '';
 function actionBtn(g) {
   if (isAdmin()) return '';   // adminlar o'yinga yozilmaydi, faqat boshqaradi
   if (g.ts <= Date.now()) return `<button class="btn ghost" disabled>${t("O'yin o'tgan")}</button>`;
+  if (!isReg(g) && blockedUntil()) return `<button class="btn ghost" disabled>${t("Bloklangansiz")}</button>`;
   return isReg(g)
     ? `<button class="btn out" data-a="cancel" data-id="${g.id}">${t("Ro'yxatdan chiqish")}</button>`
     : `<button class="btn" data-a="reg" data-id="${g.id}">${t("Ro'yxatdan o'tish")}</button>`;

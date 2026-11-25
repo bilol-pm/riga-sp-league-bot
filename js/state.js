@@ -3,7 +3,7 @@
 /* ---------- Holat ---------- */
 // me: server aytadi (id, role: player | admin | owner). games: serverdagi real o'yinlar.
 const state = {
-  me: null, games: [], admins: [], loaded: false, error: '', busy: false,
+  me: null, games: [], admins: [], blocks: [], loaded: false, error: '', busy: false,
   tab: 'games',        // games | mine | profile | admin
   open: null,          // ochilgan o'yin (ro'yxat)
   form: null,          // ro'yxatdan o'tish formasi
@@ -20,6 +20,7 @@ const isAdmin = () => !!state.me && (state.me.role === 'admin' || state.me.role 
 const isOwner = () => !!state.me && state.me.role === 'owner';
 const upcoming = () => state.games.filter(g => g.ts > Date.now()).sort((a, b) => a.ts - b.ts);
 const byId = id => state.games.find(g => g.id === id);
+const regById = id => { for (const g of state.games) { const p = g.players.find(q => q.id === id); if (p) return p; } return null; };
 const myReg = g => g.players.find(p => p.mine);
 const isReg = g => !!myReg(g);
 const statusOf = g => { const p = myReg(g); return !p ? null : (p.waiting ? 'wait' : 'ok'); };

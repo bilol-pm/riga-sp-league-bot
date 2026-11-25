@@ -6,8 +6,10 @@
  *   games          o'yinlar (sana, joy, sig'im)
  *   registrations  ro'yxatdan o'tishlar (yakka yoki jamoa)
  *   admins         adminlar (asoschi bu jadvalda emas, u OWNER_IDS da)
+ *   strikes        "kelmadi" belgilari (har bir kelmagan yozuv uchun bitta)
+ *   blocks         bloklangan o'yinchilar (muddati bilan)
  *
- * Eski bazaga yangi ustunlar (lang, reminded) ham o'zi qo'shiladi (migrate).
+ * Eski bazaga yangi ustunlar (lang, reminded, attended, marked_at) ham o'zi qo'shiladi (migrate).
  */
 // Har bir baza uchun jadvallar bir marta tekshiriladi (sinovda bir nechta baza bo'lishi mumkin)
 const schemaDone = new WeakMap();
@@ -47,6 +49,26 @@ export function ensureSchema(env) {
           added_by INTEGER NOT NULL,
           created_at INTEGER NOT NULL
         )`),
+        db.prepare(`CREATE TABLE IF NOT EXISTS strikes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          reg_id INTEGER NOT NULL UNIQUE,
+          game_id INTEGER NOT NULL,
+          uid INTEGER NOT NULL,
+          phone TEXT NOT NULL DEFAULT '',
+          email TEXT NOT NULL DEFAULT '',
+          block_id INTEGER,
+          created_at INTEGER NOT NULL
+        )`),
+        db.prepare(`CREATE TABLE IF NOT EXISTS blocks (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uid INTEGER NOT NULL,
+          name TEXT NOT NULL DEFAULT '',
+          phone TEXT NOT NULL DEFAULT '',
+          email TEXT NOT NULL DEFAULT '',
+          strike_reg_id INTEGER NOT NULL,
+          until_ts INTEGER NOT NULL,
+          created_at INTEGER NOT NULL
+        )`),
         db.prepare('CREATE INDEX IF NOT EXISTS idx_games_ts ON games (ts)'),
         db.prepare('CREATE INDEX IF NOT EXISTS idx_reg_game ON registrations (game_id)'),
       ])
@@ -63,11 +85,15 @@ export function ensureSchema(env) {
 // Eski bazada yo'q ustunlarni qo'shadi (CREATE TABLE IF NOT EXISTS mavjud jadvalni o'zgartirmaydi)
 //   lang      yozilgan odamning tili (uz / en / ru / lv): xabar shu tilda ketadi
 //   reminded  eslatma holati: 0 = hali yuborilmagan, 1 = yuborildi, 2 = yuborib bo'lmadi (bot bloklangan)
+//   attended  admin belgisi: NULL = belgilanmagan, 1 = keldi, 0 = kelmadi
+//   marked_at belgilangan vaqt
 async function migrate(env) {
   const cols = (await env.DB.prepare('PRAGMA table_info(registrations)').all()).results.map((c) => c.name);
   const add = [];
   if (!cols.includes('lang')) add.push("ALTER TABLE registrations ADD COLUMN lang TEXT NOT NULL DEFAULT ''");
   if (!cols.includes('reminded')) add.push('ALTER TABLE registrations ADD COLUMN reminded INTEGER NOT NULL DEFAULT 0');
+  if (!cols.includes('attended')) add.push('ALTER TABLE registrations ADD COLUMN attended INTEGER');
+  if (!cols.includes('marked_at')) add.push('ALTER TABLE registrations ADD COLUMN marked_at INTEGER');
   for (const sql of add) {
     try {
       await env.DB.prepare(sql).run();

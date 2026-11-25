@@ -9,7 +9,7 @@ function viewProfile() {
     <div class="stat"><b>${upcoming().filter(isReg).length}</b><small>${t("Kutilayotgan")}</small></div></div>`;
   const rows = li('✏️', t("Mening ma'lumotlarim"), profile.name || profile.phone || profile.email ? [profile.name, profile.phone].filter(Boolean).join(' · ') : t('Ism, telefon, email'), 'pedit') +
     (tu ? li('🆔', 'Telegram ID', t('{id} · nusxalash uchun bosing', { id: tu.id }), 'copyid') : '');
-  return topHtml() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(shownName() || t('Foydalanuvchi'))}</div>
+  return topHtml() + blockNote() + `<div class="card"><div class="row">${avatarHtml()}<div class="grow"><div class="g-title">${esc(shownName() || t('Foydalanuvchi'))}</div>
     <div class="g-sub">${tu && tu.username ? '@' + esc(tu.username) : t("username yo'q")}</div>
     ${tu ? `<div class="g-sub">Telegram ID: <b>${tu.id}</b></div>` : ''}</div>${role}</div></div>
     ${stats}<div class="sec-l">${t('Sozlamalar')}</div><div class="menu">${rows}</div>${isAdmin() ? adminMenu() : myGamesHtml()}`;
@@ -53,7 +53,7 @@ function viewProfileEdit() {
       <div class="field-l">${t("Ism")}</div>
       <input type="text" data-pf="name" maxlength="40" placeholder="${esc(MY_NAME || t('Ismingiz'))}" value="${esc(f.name)}">
       <div class="field-l">${t("Telefon raqam")}</div>
-      <input type="tel" data-pf="phone" maxlength="20" placeholder="+371 20 000 000" value="${esc(f.phone)}">
+      ${phoneInput('data-pf="phone"', f.phone)}
       <div class="field-l">Email</div>
       <input type="email" data-pf="email" maxlength="80" placeholder="email@example.com" value="${esc(f.email)}">
       <button class="btn" data-a="psave">${t("Saqlash")}</button>

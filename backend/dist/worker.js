@@ -17,14 +17,17 @@ const DEFAULT_WEBAPP_URL = 'https://bilol-pm.github.io/riga-sp-league-bot/';   /
 const TIMEZONE = 'Europe/Riga';        // xabarlarda sana va soat shu vaqt mintaqasida yoziladi
 const REMIND_BEFORE_MS = 24 * 3600 * 1000;   // eslatma o'yindan necha soat oldin ketadi (24 soat)
 const REMIND_BATCH = 40;                // bitta cron ishga tushishida eng ko'pi bilan nechta xabar (Cloudflare bepul limiti)
+const STRIKES_TO_BLOCK = 2;             // nechta "kelmadi"dan keyin o'yinchi avtomatik bloklanadi
+const BLOCK_DAYS = 7;                   // blok muddati (kun): 7 = 1 hafta
 
 // ===== src/http.js =====
 /** HTTP qatlami: xato sinfi, JSON javob, CORS, so'rov tanasini o'qish. */
 
 class HttpError extends Error {
-  constructor(status, message) {
+  constructor(status, message, data) {
     super(message);
     this.status = status;
+    this.data = data;   // ixtiyoriy: javobga qo'shiladigan qo'shimcha maydonlar (masalan, blok muddati)
   }
 }
 
@@ -74,8 +77,10 @@ async function readBody(req) {
  *   games          o'yinlar (sana, joy, sig'im)
  *   registrations  ro'yxatdan o'tishlar (yakka yoki jamoa)
  *   admins         adminlar (asoschi bu jadvalda emas, u OWNER_IDS da)
+ *   strikes        "kelmadi" belgilari (har bir kelmagan yozuv uchun bitta)
+ *   blocks         bloklangan o'yinchilar (muddati bilan)
  *
- * Eski bazaga yangi ustunlar (lang, reminded) ham o'zi qo'shiladi (migrate).
+ * Eski bazaga yangi ustunlar (lang, reminded, attended, marked_at) ham o'zi qo'shiladi (migrate).
  */
 // Har bir baza uchun jadvallar bir marta tekshiriladi (sinovda bir nechta baza bo'lishi mumkin)
 const schemaDone = new WeakMap();
@@ -115,6 +120,26 @@ function ensureSchema(env) {
           added_by INTEGER NOT NULL,
           created_at INTEGER NOT NULL
         )`),
+        db.prepare(`CREATE TABLE IF NOT EXISTS strikes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          reg_id INTEGER NOT NULL UNIQUE,
+          game_id INTEGER NOT NULL,
+          uid INTEGER NOT NULL,
+          phone TEXT NOT NULL DEFAULT '',
+          email TEXT NOT NULL DEFAULT '',
+          block_id INTEGER,
+          created_at INTEGER NOT NULL
+        )`),
+        db.prepare(`CREATE TABLE IF NOT EXISTS blocks (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uid INTEGER NOT NULL,
+          name TEXT NOT NULL DEFAULT '',
+          phone TEXT NOT NULL DEFAULT '',
+          email TEXT NOT NULL DEFAULT '',
+          strike_reg_id INTEGER NOT NULL,
+          until_ts INTEGER NOT NULL,
+          created_at INTEGER NOT NULL
+        )`),
         db.prepare('CREATE INDEX IF NOT EXISTS idx_games_ts ON games (ts)'),
         db.prepare('CREATE INDEX IF NOT EXISTS idx_reg_game ON registrations (game_id)'),
       ])
@@ -131,11 +156,15 @@ function ensureSchema(env) {
 // Eski bazada yo'q ustunlarni qo'shadi (CREATE TABLE IF NOT EXISTS mavjud jadvalni o'zgartirmaydi)
 //   lang      yozilgan odamning tili (uz / en / ru / lv): xabar shu tilda ketadi
 //   reminded  eslatma holati: 0 = hali yuborilmagan, 1 = yuborildi, 2 = yuborib bo'lmadi (bot bloklangan)
+//   attended  admin belgisi: NULL = belgilanmagan, 1 = keldi, 0 = kelmadi
+//   marked_at belgilangan vaqt
 async function migrate(env) {
   const cols = (await env.DB.prepare('PRAGMA table_info(registrations)').all()).results.map((c) => c.name);
   const add = [];
   if (!cols.includes('lang')) add.push("ALTER TABLE registrations ADD COLUMN lang TEXT NOT NULL DEFAULT ''");
   if (!cols.includes('reminded')) add.push('ALTER TABLE registrations ADD COLUMN reminded INTEGER NOT NULL DEFAULT 0');
+  if (!cols.includes('attended')) add.push('ALTER TABLE registrations ADD COLUMN attended INTEGER');
+  if (!cols.includes('marked_at')) add.push('ALTER TABLE registrations ADD COLUMN marked_at INTEGER');
   for (const sql of add) {
     try {
       await env.DB.prepare(sql).run();
@@ -271,79 +300,6 @@ function seatRegs(regs, capacity) {
   return { rows, used, waiting };
 }
 
-// ===== src/state.js =====
-/**
- * Holatni yig'ish: GET /api/state va har bir amaldan keyin shu qaytariladi.
- *
- * Navbat (kutish ro'yxati): yozilganlar created_at tartibida sanaladi; sig'imga sig'magan
- * yozuv "waiting" bo'ladi. Bu har safar hisoblanadi, bazada saqlanmaydi.
- *
- * Maxfiylik:
- *   - admin: hamma narsa (ro'yxat, telefon, email, @username, sig'im, nechta yozilgan)
- *   - oddiy o'yinchi: faqat o'z yozuvi; sig'im / yozilganlar soni / navbat YUBORILMAYDI,
- *     faqat `fits` (yakka yoki jamoa sig'adimi) - ro'yxat formasidagi ogohlantirish uchun.
- */
-
-
-
-async function buildState(env, me) {
-  const isAdmin = isAdminRole(me);
-  const since = Date.now() - HISTORY_DAYS * 86400000;
-  const games = (
-    await env.DB.prepare('SELECT * FROM games WHERE ts >= ? ORDER BY ts LIMIT 300').bind(since).all()
-  ).results;
-  const regs = (
-    await env.DB.prepare(
-      `SELECT r.* FROM registrations r JOIN games g ON g.id = r.game_id
-       WHERE g.ts >= ? ORDER BY r.created_at, r.id`
-    )
-      .bind(since)
-      .all()
-  ).results;
-
-  const byGame = new Map();
-  for (const r of regs) {
-    if (!byGame.has(r.game_id)) byGame.set(r.game_id, []);
-    byGame.get(r.game_id).push(r);
-  }
-
-  const out = games.map((g) => {
-    const { rows, used, waiting } = seatRegs(byGame.get(g.id) || [], g.capacity);
-    const players = rows.map(({ r, members, wait }) => {
-      const mine = !!me && r.uid === me.id;
-      const p = { id: r.id, kind: r.kind, name: r.name, members, captain: r.captain, waiting: wait, mine };
-      if (isAdmin || mine) {
-        p.phone = r.phone;
-        p.email = r.email;
-      }
-      if (isAdmin) {
-        p.uid = r.uid;
-        p.username = r.tg_username;
-      }
-      return p;
-    });
-
-    const free = Math.max(0, g.capacity - used);
-    const game = {
-      id: g.id,
-      ts: g.ts,
-      title: g.title,
-      place: g.place,
-      mapUrl: g.map_url,
-      fits: { solo: free >= 1, team: free >= TEAM_SIZE },
-      players: isAdmin ? players : players.filter((p) => p.mine),
-    };
-    if (isAdmin) Object.assign(game, { capacity: g.capacity, used, waiting });
-    return game;
-  });
-
-  const state = { me, games: out, serverTime: Date.now() };
-  if (me && me.role === 'owner') {
-    state.admins = (await env.DB.prepare('SELECT uid, name, created_at FROM admins ORDER BY created_at').all()).results;
-  }
-  return state;
-}
-
 // ===== src/rules.js =====
 /**
  * O'yin qoidalari: eslatma xabarining oxiriga "📋 O'yin qoidalari" bo'limi bo'lib qo'shiladi.
@@ -454,6 +410,8 @@ async function handleTelegram(req, env, path, ch) {
  * Eslatmani Cloudflare Cron Trigger ishga tushiradi (index.js dagi `scheduled`), har 5 daqiqada.
  * Xabar odam yozilganda tanlagan tilida ketadi (uz / en / ru / lv).
  * Matnlarni o'zgartirish: pastdagi MSG jadvalida.
+ *
+ * Yana ikki xabar (moderatsiya): birinchi "kelmadi"da OGOHLANTIRISH, ikkinchisida BLOK xabari (MOD jadvali).
  */
 
 
@@ -608,6 +566,66 @@ async function sendTo(env, chatId, msg) {
   }
 }
 
+
+// ---------- Moderatsiya xabarlari: ogohlantirish va blok ----------
+// Muddat matni: nom = "1 hafta", for = "1 haftaga" (har tilda o'z shakli)
+function duration(lang, days) {
+  const w = days / 7;
+  if (!Number.isInteger(w)) {
+    return { uz: { nom: `${days} kun`, to: `${days} kunga` }, en: { nom: `${days} days`, to: `for ${days} days` }, ru: { nom: `${days} дн.`, to: `на ${days} дн.` }, lv: { nom: `${days} dienas`, to: `uz ${days} dienām` } }[lang];
+  }
+  const one = w % 10 === 1 && w % 100 !== 11;
+  const few = w % 10 >= 2 && w % 10 <= 4 && (w % 100 < 12 || w % 100 > 14);
+  if (lang === 'en') return { nom: `${w} week${w > 1 ? 's' : ''}`, to: `for ${w} week${w > 1 ? 's' : ''}` };
+  if (lang === 'ru') return { nom: `${w} ${one ? 'неделя' : few ? 'недели' : 'недель'}`, to: `на ${w} ${one ? 'неделю' : few ? 'недели' : 'недель'}` };
+  if (lang === 'lv') return { nom: `${w} ${one ? 'nedēļa' : 'nedēļas'}`, to: `uz ${w} ${one ? 'nedēļu' : 'nedēļām'}` };
+  return { nom: `${w} hafta`, to: `${w} haftaga` };
+}
+
+const MOD = {
+  uz: {
+    warn: { head: '⚠️ Ogohlantirish', intro: "Siz quyidagi futbol o'yiniga kelmadingiz:", body: (d) => `Bu sizning oxirgi imkoniyatingiz. Agar yana o'yinga kelmasangiz, akkauntingiz ${d.to} bloklanadi va shu vaqt davomida ro'yxatdan o'ta olmaysiz.\n\nKela olmasangiz, oldindan ilovada ro'yxatdan chiqing: boshqa o'yinchilarga joy bo'shaydi.\nSavollar bo'lsa, admin bilan bog'laning.` },
+    block: { head: '⛔ Akkauntingiz vaqtincha bloklandi', intro: (d) => `Siz futbol o'yinlariga ikki marta kelmadingiz, shuning uchun ro'yxatdan o'tishingiz ${d.to} cheklandi.`, len: (d) => `🔒 Blok muddati: ${d.nom}`, until: (dt) => `📅 Qayta ro'yxatdan o'ta olasiz: ${dt.date}, ${dt.time} dan keyin`, cancelled: "Shu davrdagi o'yinlarga yozuvlaringiz bekor qilindi.", foot: "Savol yoki e'tiroz bo'lsa, admin bilan bog'laning." },
+  },
+  en: {
+    warn: { head: '⚠️ Warning', intro: 'You missed this football game:', body: (d) => `This is your last chance. If you miss another game, your account will be blocked ${d.to} and you won't be able to register during that time.\n\nIf you can't make it, cancel your registration in the app in advance so another player can take your spot.\nIf you have questions, contact the admin.` },
+    block: { head: '⛔ Your account is temporarily blocked', intro: (d) => `You have missed two games, so registration is restricted ${d.to}.`, len: (d) => `🔒 Block length: ${d.nom}`, until: (dt) => `📅 You can register again after: ${dt.date}, ${dt.time}`, cancelled: 'Your registrations for games during this period were cancelled.', foot: 'If you have questions or objections, contact the admin.' },
+  },
+  ru: {
+    warn: { head: '⚠️ Предупреждение', intro: 'Вы не пришли на футбольную игру:', body: (d) => `Это ваш последний шанс. Если вы снова не придёте на игру, ваш аккаунт будет заблокирован ${d.to}, и в это время вы не сможете записываться.\n\nЕсли не сможете прийти, заранее отмените запись в приложении, чтобы место досталось другому игроку.\nЕсли есть вопросы, свяжитесь с администратором.` },
+    block: { head: '⛔ Ваш аккаунт временно заблокирован', intro: (d) => `Вы дважды не пришли на игры, поэтому запись ограничена ${d.to}.`, len: (d) => `🔒 Срок блокировки: ${d.nom}`, until: (dt) => `📅 Снова записаться можно после: ${dt.date}, ${dt.time}`, cancelled: 'Ваши записи на игры в этот период отменены.', foot: 'Если есть вопросы или возражения, свяжитесь с администратором.' },
+  },
+  lv: {
+    warn: { head: '⚠️ Brīdinājums', intro: 'Jūs neieradāties uz šo futbola spēli:', body: (d) => `Šī ir jūsu pēdējā iespēja. Ja vēlreiz neieradīsieties uz spēli, jūsu profils tiks bloķēts ${d.to} un šajā laikā nevarēsiet pieteikties.\n\nJa nevarat ierasties, iepriekš atceliet pieteikumu lietotnē, lai vietu varētu ieņemt cits spēlētājs.\nJa ir jautājumi, sazinieties ar administratoru.` },
+    block: { head: '⛔ Jūsu profils uz laiku bloķēts', intro: (d) => `Jūs divreiz neieradāties uz spēlēm, tāpēc pieteikšanās ir ierobežota ${d.to}.`, len: (d) => `🔒 Bloķēšanas ilgums: ${d.nom}`, until: (dt) => `📅 Atkal pieteikties varēsiet pēc: ${dt.date}, ${dt.time}`, cancelled: 'Jūsu pieteikumi spēlēm šajā periodā ir atcelti.', foot: 'Ja ir jautājumi vai iebildumi, sazinieties ar administratoru.' },
+  },
+};
+
+// kind: 'warn' | 'block'. extra: { until, cancelled } (blok uchun)
+function buildModeration(kind, g, lang, env, extra = {}) {
+  const lg = MOD[lang] ? lang : 'uz';
+  const L = MSG[lg];
+  const M = MOD[lg][kind];
+  const d = duration(lg, BLOCK_DAYS);
+  const w = whenParts(g.ts, lg);
+  const title = !g.title || g.title === DEFAULT_TITLE ? L.game : g.title;
+  let lines;
+  if (kind === 'warn') {
+    lines = [`<b>${esc(M.head)}</b>`, '', esc(M.intro), '', `${L.label.game}: ${esc(title)}`, `${L.label.date}: ${esc(w.date)}`, `${L.label.time}: ${w.time}`, '', esc(M.body(d))];
+  } else {
+    const u = whenParts(extra.until, lg);
+    lines = [`<b>${esc(M.head)}</b>`, '', esc(M.intro(d)), '', esc(M.len(d)), esc(M.until(u))];
+    if (extra.cancelled) lines.push('', esc(M.cancelled));
+    lines.push('', esc(M.foot));
+  }
+  return { text: lines.join('\n'), reply_markup: { inline_keyboard: [[{ text: L.open, web_app: { url: webAppUrl(env) } }]] } };
+}
+
+// Moderatsiya xabarini yuborish (xato bo'lsa jim o'tadi; belgilash/blok bekor bo'lmaydi)
+async function notifyModeration(env, kind, g, uid, lang, extra) {
+  await sendTo(env, uid, buildModeration(kind, g, lang, env, extra));
+}
+
 // Ro'yxatdan o'tgandan keyin: tasdiq xabari (navbatda bo'lsa, boshqa matn)
 async function notifyRegistered(env, g, uid, lang) {
   const regs = (await env.DB.prepare('SELECT * FROM registrations WHERE game_id = ? ORDER BY created_at, id').bind(g.id).all()).results;
@@ -647,8 +665,281 @@ async function sendReminders(env, now = Date.now()) {
   return { sent: sent.length, dead: dead.length };
 }
 
+// ===== src/validate.js =====
+/**
+ * Telefon va email tekshirish.
+ *   parsePhone / parseEmail : kiritilgan qiymat to'g'rimi (ro'yxatdan o'tishda)
+ *   phoneKey / emailKey     : bir odamni topish uchun "kalit" (bloklashda: bir xil raqam yoki email = bir odam)
+ */
+
+// Telefon: faqat Latviya raqami: +371 va 8 ta raqam. To'g'ri bo'lsa "+371XXXXXXXX", bo'lmasa null.
+function parsePhone(raw) {
+  const s = String(raw == null ? '' : raw).replace(/[\s().-]/g, '');
+  const m = /^\+371(\d{8})$/.exec(s);
+  return m ? '+371' + m[1] : null;
+}
+
+// Faqat raqamlar; 8 xonali bo'lsa 371 qo'shiladi. Eski yozuvlardagi turli yozilishlar ham bir xil chiqadi.
+function phoneKey(raw) {
+  let d = String(raw == null ? '' : raw).replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.length === 8) d = '371' + d;
+  return d;
+}
+
+// Ko'p ishlatiladigan pochta domenlari: ularning xato yozilganini (gmail.con, gmial.com, icloud.co...) ushlaymiz
+const POPULAR = ['gmail.com', 'icloud.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
+// Haqiqiy domenlar (ular yuqoridagilarga o'xshash, lekin xato emas)
+const REAL = new Set([
+  ...POPULAR, 'googlemail.com', 'mail.com', 'email.com', 'me.com', 'mac.com', 'live.com', 'msn.com', 'ymail.com', 'aol.com',
+  'gmx.com', 'gmx.de', 'gmx.net', 'yahoo.de', 'yahoo.fr', 'yahoo.it', 'yahoo.es', 'yahoo.co.uk', 'hotmail.co.uk', 'hotmail.de', 'hotmail.fr',
+  'outlook.de', 'outlook.fr', 'outlook.lv', 'mail.ru', 'yandex.ru', 'yandex.com', 'ya.ru', 'inbox.lv', 'inbox.ru', 'list.ru', 'bk.ru',
+  'tvnet.lv', 'apollo.lv', 'proton.me', 'protonmail.com', 'pm.me',
+]);
+
+function lev(a, b) {
+  const m = a.length;
+  const n = b.length;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+
+const EMAIL_RE = /^[a-z0-9](?:[a-z0-9._%+-]{0,62}[a-z0-9])?@(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/;
+
+// -> { ok: true, email } yoki { ok: false, suggest: 'gmail.com' | null }
+function parseEmail(raw) {
+  const email = String(raw == null ? '' : raw).trim().toLowerCase();
+  if (email.length > 80 || email.includes('..') || !EMAIL_RE.test(email)) return { ok: false, suggest: null };
+  const dom = email.slice(email.lastIndexOf('@') + 1);
+  if (!REAL.has(dom)) {
+    const near = POPULAR.find((p) => lev(dom, p) <= 2);
+    if (near) return { ok: false, suggest: near };
+  }
+  return { ok: true, email };
+}
+
+// Bir odamning turli yozilgan emaillari bir xil kalit beradi: katta/kichik harf, "+yorliq", gmail nuqtalari
+function emailKey(raw) {
+  const s = String(raw == null ? '' : raw).trim().toLowerCase();
+  const at = s.lastIndexOf('@');
+  if (at < 1) return s;
+  let local = s.slice(0, at).split('+')[0];
+  let dom = s.slice(at + 1);
+  if (dom === 'googlemail.com') dom = 'gmail.com';
+  if (dom === 'gmail.com') local = local.replace(/\./g, '');
+  return local + '@' + dom;
+}
+
+// ===== src/moderation.js =====
+/**
+ * Davomat va bloklash.
+ *   - Admin o'tgan o'yinda yozuvni "keldi" yoki "kelmadi" deb belgilaydi.
+ *   - Birinchi "kelmadi": ogohlantirish xabari (oxirgi imkoniyat).
+ *   - Ikkinchi "kelmadi": avtomatik blok (BLOCK_DAYS kun), shu davrdagi o'yinlardagi yozuvlari bekor qilinadi.
+ *   - Bir odam: Telegram ID, telefon yoki email bir xil bo'lsa (turli akkaunt ochib aylanib o'tib bo'lmaydi).
+ *   - Admin belgini bekor qilsa ("clear" yoki "keldi"), kelmadi belgisi, ogohlantirish hisobi va u keltirgan blok ham olib tashlanadi.
+ */
+
+
+
+
+
+
+
+const DAY = 86400000;
+
+// Yozuvdan odam kimligi: Telegram ID + telefon + email kalitlari
+const identOf = (r) => ({ uid: r.uid, phone: phoneKey(r.phone), email: emailKey(r.email) });
+// Ikki kimlik bir odammi (ID yoki telefon yoki email bir xil)
+const sameIdent = (a, b) => a.uid === b.uid || (!!a.phone && a.phone === b.phone) || (!!a.email && a.email === b.email);
+
+async function activeBlocks(env, now = Date.now()) {
+  return (await env.DB.prepare('SELECT * FROM blocks WHERE until_ts > ? ORDER BY until_ts').bind(now).all()).results;
+}
+// Shu odam hozir bloklanganmi? -> blok yozuvi yoki null
+async function findBlock(env, ident, now = Date.now()) {
+  return (await activeBlocks(env, now)).find((b) => sameIdent(ident, identOf(b))) || null;
+}
+const activeStrikes = async (env) => (await env.DB.prepare('SELECT * FROM strikes WHERE block_id IS NULL').all()).results;
+
+// Holat uchun: faol "kelmadi" lar va bloklar (state.js ishlatadi)
+async function loadModeration(env, now = Date.now()) {
+  return { strikes: await activeStrikes(env), blocks: await activeBlocks(env, now) };
+}
+
+const displayName = (r) => (r.kind === 'team' ? String((JSON.parse(r.members || '[]')[r.captain]) || r.name) : r.name);
+
+// "Kelmadi" belgisi: hisobga qo'shadi; 1-sida ogohlantirish, STRIKES_TO_BLOCK-sida blok
+async function addStrike(env, ctx, reg, game, now) {
+  const ident = identOf(reg);
+  await env.DB.prepare(
+    'INSERT OR IGNORE INTO strikes (reg_id, game_id, uid, phone, email, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+  ).bind(reg.id, reg.game_id, ident.uid, ident.phone, ident.email, now).run();
+
+  const mine = (await activeStrikes(env)).filter((s) => sameIdent(ident, identOf(s)));
+  const lang = reg.lang || 'uz';
+  const send = (kind, extra) => {
+    const task = notifyModeration(env, kind, game, reg.uid, lang, extra).catch((e) => console.error(e));
+    if (ctx && ctx.waitUntil) ctx.waitUntil(task);
+  };
+
+  if (mine.length < STRIKES_TO_BLOCK) return send('warn');
+
+  const until = now + BLOCK_DAYS * DAY;
+  await env.DB.prepare(
+    'INSERT INTO blocks (uid, name, phone, email, strike_reg_id, until_ts, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).bind(reg.uid, displayName(reg), ident.phone, ident.email, reg.id, until, now).run();
+  const block = await env.DB.prepare('SELECT id FROM blocks WHERE strike_reg_id = ? ORDER BY id DESC').bind(reg.id).first();
+  for (const s of mine) await env.DB.prepare('UPDATE strikes SET block_id = ? WHERE id = ?').bind(block.id, s.id).run();
+
+  // Blok davridagi o'yinlarga qilingan yozuvlari bekor qilinadi
+  const future = (
+    await env.DB.prepare(
+      'SELECT r.* FROM registrations r JOIN games g ON g.id = r.game_id WHERE g.ts > ? AND g.ts < ?'
+    ).bind(now, until).all()
+  ).results.filter((r) => sameIdent(ident, identOf(r)));
+  for (const r of future) await env.DB.prepare('DELETE FROM registrations WHERE id = ?').bind(r.id).run();
+
+  send('block', { until, cancelled: future.length });
+}
+
+// "Kelmadi" belgisini olib tashlaydi; u blok keltirgan bo'lsa, blok ham yo'qoladi (qolgan belgilar faol bo'lib qoladi)
+async function removeStrike(env, regId) {
+  const s = await env.DB.prepare('SELECT * FROM strikes WHERE reg_id = ?').bind(regId).first();
+  if (!s) return;
+  if (s.block_id) {
+    await env.DB.prepare('DELETE FROM blocks WHERE id = ?').bind(s.block_id).run();
+    await env.DB.prepare('UPDATE strikes SET block_id = NULL WHERE block_id = ?').bind(s.block_id).run();
+  }
+  await env.DB.prepare('DELETE FROM strikes WHERE id = ?').bind(s.id).run();
+}
+
+// POST /api/admin/attendance { id: yozuv ID, status: 'came' | 'absent' | 'clear' }
+async function setAttendance(env, me, b, ctx) {
+  needAdmin(me);
+  const id = int(b.id);
+  if (!Number.isInteger(id)) throw new HttpError(400, 'Yozuv tanlanmagan');
+  const next = b.status === 'absent' ? 0 : b.status === 'came' ? 1 : b.status === 'clear' ? null : undefined;
+  if (next === undefined) throw new HttpError(400, "Noto'g'ri so'rov");
+  const reg = await env.DB.prepare('SELECT * FROM registrations WHERE id = ?').bind(id).first();
+  if (!reg) throw new HttpError(404, 'Yozuv topilmadi');
+  const game = await env.DB.prepare('SELECT * FROM games WHERE id = ?').bind(reg.game_id).first();
+  const now = Date.now();
+  if (!game || game.ts > now) throw new HttpError(400, "O'yin hali boshlanmagan");
+  const regs = (await env.DB.prepare('SELECT * FROM registrations WHERE game_id = ? ORDER BY created_at, id').bind(game.id).all()).results;
+  const row = seatRegs(regs, game.capacity).rows.find((x) => x.r.id === id);
+  if (row && row.wait) throw new HttpError(400, "Navbatdagi o'yinchi uchun belgilab bo'lmaydi");
+
+  const prev = reg.attended == null ? null : reg.attended;
+  if (prev === next) return;
+  await env.DB.prepare('UPDATE registrations SET attended = ?, marked_at = ? WHERE id = ?').bind(next, next === null ? null : now, id).run();
+  if (next === 0) await addStrike(env, ctx, reg, game, now);
+  else if (prev === 0) await removeStrike(env, id);
+}
+
+// POST /api/admin/unblock { id: blok ID }: blok olib tashlanadi va shu blokka sabab bo'lgan belgilar tozalanadi
+async function unblock(env, me, b) {
+  needAdmin(me);
+  const id = int(b.id);
+  if (!Number.isInteger(id)) throw new HttpError(400, 'Blok tanlanmagan');
+  await env.DB.prepare('DELETE FROM strikes WHERE block_id = ?').bind(id).run();
+  await env.DB.prepare('DELETE FROM blocks WHERE id = ?').bind(id).run();
+}
+
+// ===== src/state.js =====
+/**
+ * Holatni yig'ish: GET /api/state va har bir amaldan keyin shu qaytariladi.
+ *
+ * Navbat (kutish ro'yxati): yozilganlar created_at tartibida sanaladi; sig'imga sig'magan
+ * yozuv "waiting" bo'ladi. Bu har safar hisoblanadi, bazada saqlanmaydi.
+ *
+ * Maxfiylik:
+ *   - admin: hamma narsa (ro'yxat, telefon, email, @username, sig'im, nechta yozilgan, davomat, "kelmadi" soni, bloklanganlar)
+ *   - oddiy o'yinchi: faqat o'z yozuvi; sig'im / yozilganlar soni / navbat YUBORILMAYDI,
+ *     faqat `fits` (yakka yoki jamoa sig'adimi) - ro'yxat formasidagi ogohlantirish uchun.
+ */
+
+
+
+
+async function buildState(env, me) {
+  const isAdmin = isAdminRole(me);
+  const since = Date.now() - HISTORY_DAYS * 86400000;
+  const games = (
+    await env.DB.prepare('SELECT * FROM games WHERE ts >= ? ORDER BY ts LIMIT 300').bind(since).all()
+  ).results;
+  const regs = (
+    await env.DB.prepare(
+      `SELECT r.* FROM registrations r JOIN games g ON g.id = r.game_id
+       WHERE g.ts >= ? ORDER BY r.created_at, r.id`
+    )
+      .bind(since)
+      .all()
+  ).results;
+
+  const mod = await loadModeration(env);   // faol "kelmadi" belgilari va bloklar
+  const strikesOf = (r) => { const id = identOf(r); return mod.strikes.filter((x) => sameIdent(id, identOf(x))).length; };
+  const blockOf = (r) => { const id = identOf(r); return mod.blocks.find((x) => sameIdent(id, identOf(x))) || null; };
+
+  const byGame = new Map();
+  for (const r of regs) {
+    if (!byGame.has(r.game_id)) byGame.set(r.game_id, []);
+    byGame.get(r.game_id).push(r);
+  }
+
+  const out = games.map((g) => {
+    const { rows, used, waiting } = seatRegs(byGame.get(g.id) || [], g.capacity);
+    const players = rows.map(({ r, members, wait }) => {
+      const mine = !!me && r.uid === me.id;
+      const p = { id: r.id, kind: r.kind, name: r.name, members, captain: r.captain, waiting: wait, mine };
+      if (isAdmin || mine) {
+        p.phone = r.phone;
+        p.email = r.email;
+      }
+      if (isAdmin) {
+        p.uid = r.uid;
+        p.username = r.tg_username;
+        p.attended = r.attended == null ? null : r.attended;   // null = belgilanmagan, 1 = keldi, 0 = kelmadi
+        p.strikes = strikesOf(r);
+        const bl = blockOf(r);
+        if (bl) p.blockedUntil = bl.until_ts;
+      }
+      return p;
+    });
+
+    const free = Math.max(0, g.capacity - used);
+    const game = {
+      id: g.id,
+      ts: g.ts,
+      title: g.title,
+      place: g.place,
+      mapUrl: g.map_url,
+      fits: { solo: free >= 1, team: free >= TEAM_SIZE },
+      players: isAdmin ? players : players.filter((p) => p.mine),
+    };
+    if (isAdmin) Object.assign(game, { capacity: g.capacity, used, waiting });
+    return game;
+  });
+
+  // O'yinchiga faqat o'zining bloki ko'rinadi (ilovada "bloklangansiz" xabari uchun)
+  const myBlock = me ? mod.blocks.find((x) => x.uid === me.id) : null;
+  const state = { me: me ? { ...me, blockedUntil: myBlock ? myBlock.until_ts : 0 } : null, games: out, serverTime: Date.now() };
+  if (isAdmin) state.blocks = mod.blocks.map((x) => ({ id: x.id, name: x.name, uid: x.uid, phone: x.phone, email: x.email, until: x.until_ts }));
+  if (me && me.role === 'owner') {
+    state.admins = (await env.DB.prepare('SELECT uid, name, created_at FROM admins ORDER BY created_at').all()).results;
+  }
+  return state;
+}
+
 // ===== src/routes/player.js =====
 /** Futbolchi amallari: o'yinga yozilish va chiqish. */
+
+
 
 
 
@@ -665,8 +956,9 @@ async function register(env, me, b, ctx) {
   const kind = b.kind === 'team' ? 'team' : b.kind === 'solo' ? 'solo' : null;
   if (!kind) throw new HttpError(400, 'Avval tanlang: jamoa yoki yakka');
 
-  const phone = str(b.phone, 30);
-  if (!/^\+?[0-9 ()-]{7,20}$/.test(phone)) throw new HttpError(400, "Telefon raqamni to'g'ri kiriting");
+  // Telefon: faqat Latviya raqami (+371 va 8 ta raqam); "+371XXXXXXXX" ko'rinishida saqlanadi
+  const phone = parsePhone(str(b.phone, 30));
+  if (!phone) throw new HttpError(400, "Telefon raqam +371 bilan boshlanib, 8 ta raqamdan iborat bo'lsin");
 
   let name;
   let members = [];
@@ -675,8 +967,9 @@ async function register(env, me, b, ctx) {
   if (kind === 'solo') {
     name = str(b.name, 40);
     if (name.length < 2) throw new HttpError(400, 'Ismingizni kiriting');
-    email = str(b.email, 80);
-    if (!/^\S+@\S+\.\S+$/.test(email)) throw new HttpError(400, "Email manzilni to'g'ri kiriting");
+    const em = parseEmail(str(b.email, 80));
+    if (!em.ok) throw new HttpError(400, em.suggest ? `Email domeni xato yozilgan: ${em.suggest}` : "Email manzilni to'g'ri kiriting");
+    email = em.email;
   } else {
     members = Array.isArray(b.members) ? b.members.map((s) => str(s, 40)) : [];
     if (members.length !== TEAM_SIZE || members.some((s) => s.length < 2)) {
@@ -688,6 +981,10 @@ async function register(env, me, b, ctx) {
     }
     name = str(b.teamName, 40) || 'Jamoa';
   }
+
+  // Bloklangan odam (Telegram ID, telefon yoki email bo'yicha) ro'yxatdan o'ta olmaydi
+  const blocked = await findBlock(env, { uid: me.id, phone: phoneKey(phone), email: emailKey(email) });
+  if (blocked) throw new HttpError(403, 'Siz vaqtincha bloklangansiz', { until: blocked.until_ts });
 
   // Til: mijoz yuborgan (ilovada tanlangan), bo'lmasa Telegram tili. Keyingi xabarlar shu tilda ketadi.
   const lang = pickLang(b.lang, me.tgLang);
@@ -726,6 +1023,7 @@ async function cancel(env, me, b) {
 
 // ===== src/routes/games.js =====
 /** Admin amallari: o'yinlar va yozuvlar. */
+
 
 
 
@@ -770,6 +1068,8 @@ async function deleteGame(env, me, b) {
   needAdmin(me);
   const id = int(b.id);
   if (!Number.isInteger(id)) throw new HttpError(400, "O'yin tanlanmagan");
+  // O'yin o'chirilsa, undagi "kelmadi" belgilari ham hisobdan chiqadi
+  for (const r of (await env.DB.prepare('SELECT id FROM registrations WHERE game_id = ?').bind(id).all()).results) await removeStrike(env, r.id);
   await env.DB.batch([
     env.DB.prepare('DELETE FROM registrations WHERE game_id = ?').bind(id),
     env.DB.prepare('DELETE FROM games WHERE id = ?').bind(id),
@@ -780,6 +1080,7 @@ async function deleteReg(env, me, b) {
   needAdmin(me);
   const id = int(b.id);
   if (!Number.isInteger(id)) throw new HttpError(400, 'Yozuv tanlanmagan');
+  await removeStrike(env, id);   // "kelmadi" belgisi bo'lsa, u ham olib tashlanadi
   await env.DB.prepare('DELETE FROM registrations WHERE id = ?').bind(id).run();
 }
 
@@ -814,12 +1115,15 @@ async function removeAdmin(env, me, b) {
 
 
 
+
 const ROUTES = {
   '/api/register': register,
   '/api/cancel': cancel,
   '/api/admin/game': saveGame,
   '/api/admin/game/delete': deleteGame,
   '/api/admin/reg/delete': deleteReg,
+  '/api/admin/attendance': setAttendance,
+  '/api/admin/unblock': unblock,
   '/api/admin/admins/add': addAdmin,
   '/api/admin/admins/remove': removeAdmin,
 };
@@ -875,7 +1179,7 @@ export default {
       await handler(env, me, await readBody(req), ctx);
       return json({ ok: true, state: await buildState(env, me) }, 200, ch);
     } catch (e) {
-      if (e instanceof HttpError) return json({ ok: false, error: e.message }, e.status, ch);
+      if (e instanceof HttpError) return json({ ok: false, error: e.message, ...(e.data || {}) }, e.status, ch);
       console.error(e);
       return json({ ok: false, error: "Server xatosi. Birozdan keyin urinib ko'ring." }, 500, ch);
     }

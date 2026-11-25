@@ -54,7 +54,7 @@ riga-sp-league-bot/
 │   │   ├── locales/lv.js   Latishcha tarjimalar
 │   │   ├── i18n.js         Tilni tanlash va t() funksiyasi
 │   │   └── dates.js        Sana/oy/hafta kunlari to'rt tilda
-│   ├── utils.js            Kichik yordamchilar (esc, sana, telefon tekshirish)
+│   ├── utils.js            Kichik yordamchilar (esc, sana, telefon +371 va email tekshirish)
 │   ├── storage.js          localStorage: profil va yozilgan o'yinlar tarixi
 │   ├── state.js            Ilovaning yagona holati (state) va rol yordamchilari
 │   ├── api.js              Server bilan aloqa: api(), refresh(), act()
@@ -80,11 +80,13 @@ riga-sp-league-bot/
 │   │   ├── config.js       O'zgarmaslar (jamoa hajmi va h.k.)
 │   │   ├── http.js         Xato sinfi, JSON javob, CORS, so'rovni o'qish
 │   │   ├── utils.js        Matn tozalash, son o'qish
-│   │   ├── db.js           Jadvallarni yaratish va eski bazaga yangi ustun qo'shish (games, registrations, admins)
+│   │   ├── db.js           Jadvallarni yaratish va eski bazaga yangi ustun qo'shish (games, registrations, admins, strikes, blocks)
 │   │   ├── auth.js         Telegram imzosini tekshirish, rollar
 │   │   ├── state.js        Holatni yig'ish; maxfiylik shu yerda
 │   │   ├── queue.js        Navbat hisobi: kim ro'yxatda, kim kutmoqda
-│   │   ├── notify.js       O'yinchiga xabarlar: tasdiq va 24 soat oldin eslatma (matnlar 4 tilda)
+│   │   ├── notify.js       O'yinchiga xabarlar: tasdiq, 24 soat oldin eslatma, ogohlantirish, blok (matnlar 4 tilda)
+│   │   ├── validate.js     Telefon (+371) va email tekshirish, bir odamni aniqlash kalitlari
+│   │   ├── moderation.js   Davomat (keldi/kelmadi), ogohlantirish, avtomatik blok, blokni ochish
 │   │   ├── rules.js        O'yin qoidalari matni: eslatma xabarining oxiriga qo'shiladi (hozircha bo'sh)
 │   │   ├── telegram.js     Bot: /start ga javob (webhook) va bir martalik sozlash
 │   │   └── routes/
@@ -116,7 +118,9 @@ riga-sp-league-bot/
 | Ro'yxatdan o'tish formasi | `js/views/form.js` (ko'rinishi), `js/actions/forms.js` (tekshirish) |
 | Yangi tugma qo'shish | HTML ga `data-a="nom"`, `js/actions/events.js` ga shu nom uchun qator |
 | Admin menyusi | `js/views/admin.js` |
-| Server tekshiruvlari (telefon, email) | `backend/src/routes/player.js` |
+| Telefon (+371) va email tekshirish | server: `backend/src/validate.js`, ekran: `js/utils.js` (qoidalar bir xil) |
+| Davomat (keldi/kelmadi), ogohlantirish, blok | `backend/src/moderation.js`; sonlar: `backend/src/config.js` (`STRIKES_TO_BLOCK`, `BLOCK_DAYS`) va `js/config.js` (`STRIKES_TO_BLOCK`) |
+| Ogohlantirish / blok xabari matni | `backend/src/notify.js` (`MOD` jadvali, 4 til) |
 | Kim nimani ko'ra oladi | `backend/src/state.js` |
 | O'yin qoidalari (eslatmada ko'rinadi) | `backend/src/rules.js` (har til uchun alohida matn) |
 | Tasdiq / eslatma xabari matni, eslatma vaqti | matn: `backend/src/notify.js` (`MSG`), vaqt: `backend/src/config.js` (`REMIND_BEFORE_MS`) |
@@ -195,6 +199,14 @@ Sozlamalar `backend/wrangler.toml` da (baza, `OWNER_IDS`, `ALLOWED_ORIGIN`, har 
   (bazada saqlanmaydi): kimdir chiqib ketsa, navbatdagi avtomatik kiradi.
 - Yozilish formasi: **Jamoam bor** (jamoa nomi ixtiyoriy, 7 ta ism, kapitan ⭐, kapitan telefoni) yoki
   **Yakka o'zim** (ism, telefon, email).
+- **Telefon**: faqat Latviya raqami, `+371` va 8 ta raqam (`+371XXXXXXXX` ko'rinishida saqlanadi). **Email**: shakli tekshiriladi,
+  mashhur domen xato yozilsa (gmail.con, gmial.com, icloud.co...) to'g'ri variant taklif qilinadi.
+- **Davomat va blok**: o'yin boshlangach admin (Profil → Ro'yxatdan o'tganlar → "O'tgan o'yinlar") har bir yozilganni "Keldi" yoki
+  "Kelmadi" deb belgilaydi (navbatdagilar belgilanmaydi). Birinchi "Kelmadi": o'yinchiga ogohlantirish xabari, adminda ⚠️ 1.
+  Ikkinchi "Kelmadi": akkaunt belgilangan paytdan 1 haftaga avtomatik bloklanadi, shu davrdagi o'yinlarga yozuvlari bekor qilinadi.
+  Blokdan keyin hisob yangidan boshlanadi. Bir odam Telegram ID, telefon yoki email bo'yicha aniqlanadi (gmail nuqtalari va `+yorliq`
+  e'tiborga olinmaydi), shuning uchun yangi akkaunt ochib aylanib o'tib bo'lmaydi. Admin belgini qaytarib olsa, ogohlantirish va
+  u keltirgan blok ham olib tashlanadi; "Bloklanganlar" bo'limida blokni qo'lda ochish mumkin.
 - Profil ma'lumotlari va "yozilgan o'yinlarim" tarixi hozircha faqat shu qurilmaning `localStorage` ida saqlanadi.
 
 ## Kod yozish qoidalari (bu loyihada)

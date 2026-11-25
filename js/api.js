@@ -15,8 +15,9 @@ async function api(path, body) {
   catch (e) { throw new Error(t("Server bilan aloqa yo'q. Internetni tekshiring.")); }
   try { j = await r.json(); } catch (e) {}
   if (!r.ok || !j || j.ok === false) {
-    const err = new Error(j && j.error ? srvErr(j.error) : t('Xatolik yuz berdi'));
-    err.status = r.status;
+    const blocked = j && j.until > Date.now();   // bloklangan odam ro'yxatdan o'tmoqchi bo'ldi
+    const err = new Error(blocked ? t("Siz vaqtincha bloklangansiz. Ro'yxatdan o'tish mumkin: {when} dan keyin", { when: fmtWhen(j.until) }) : (j && j.error ? srvErr(j.error) : t('Xatolik yuz berdi')));
+    err.status = r.status; err.blocked = blocked;
     throw err;
   }
   return j;
@@ -24,7 +25,7 @@ async function api(path, body) {
 let rev = 0;   // har bir yangi holat olinganda oshadi: eskirgan javob yangisini bosib ketmasin
 function applyState(s) {
   rev++;
-  state.me = s.me; state.games = s.games; state.admins = s.admins || [];
+  state.me = s.me; state.games = s.games; state.admins = s.admins || []; state.blocks = s.blocks || [];
   state.loaded = true; state.error = '';
   syncHist();
 }
@@ -51,6 +52,7 @@ async function act(path, body, okMsg) {
     return true;
   } catch (e) {
     toast(e.message || t('Xatolik'));
+    if (e.blocked) refresh(false);   // blok haqidagi xabar darrov ekranda chiqsin
     return false;
   } finally { state.busy = false; }
 }
